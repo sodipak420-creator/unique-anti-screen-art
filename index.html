@@ -3,144 +3,80 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Hydro Dip 1-of-1 Ultra Studio</title>
+  <title>Real Dipped Screen Wallpaper</title>
 
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#06b6d4" />
+  <meta name="theme-color" content="#f43f5e" />
   <meta name="mobile-web-app-capable" content="yes" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { touch-action: none; }
     canvas { touch-action: none; }
-
-    .oil-sheen {
-      background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 35%, transparent 70%),
-                  linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%, rgba(0,0,0,0.4) 100%);
-      mix-blend-mode: screen;
-      pointer-events: none;
-    }
-
-    /* Hands Pulling Phone Out of Bath Animation */
-    @keyframes realisticDipAndExtract {
-      0% {
-        transform: translateY(-130%) scale(0.8) rotateX(40deg);
-        opacity: 0;
-        filter: drop-shadow(0 40px 40px rgba(0,0,0,0.95));
-      }
-      30% {
-        transform: translateY(0%) scale(0.96) rotateX(15deg);
-        opacity: 1;
-        filter: drop-shadow(0 0 35px rgba(6,182,212,0.6));
-      }
-      55% {
-        transform: translateY(8%) scale(1.02) rotateX(-8deg);
-      }
-      /* Pulling out hands with fresh glossy film */
-      80% {
-        transform: translateY(-3%) scale(1.01) rotateX(2deg);
-        filter: drop-shadow(0 25px 50px rgba(0,0,0,0.95));
-      }
-      100% {
-        transform: translateY(0%) scale(1) rotateX(0deg);
-        filter: drop-shadow(0 25px 45px rgba(0,0,0,0.95));
-      }
-    }
-
-    .dip-extract-anim {
-      animation: realisticDipAndExtract 2.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
-    }
-
-    @keyframes liquidRipple {
-      0% { transform: scale(0.1); opacity: 0.9; border-width: 3px; }
-      50% { opacity: 0.4; }
-      100% { transform: scale(3.5); opacity: 0; border-width: 1px; }
-    }
-    .ripple-ring {
-      animation: liquidRipple 1.4s cubic-bezier(0, 0.25, 0.75, 1) forwards;
-    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-3 font-sans select-none overflow-x-hidden">
 
-  <main class="w-full max-w-md bg-slate-900/95 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8 backdrop-blur-xl">
+  <main class="w-full max-w-md bg-slate-900/95 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
     
-    <div id="installBanner" class="hidden mb-4 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl flex items-center justify-between">
+    <div id="installBanner" class="hidden mb-4 p-3 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center justify-between">
       <div class="text-xs">
-        <p class="font-bold text-cyan-400">Install Hydro Studio</p>
-        <p class="text-slate-400">Mint 1-of-1 screen films offline</p>
+        <p class="font-bold text-rose-400">Install Dipped Studio</p>
+        <p class="text-slate-400">Generate wet lock screens offline</p>
       </div>
-      <button onclick="installPWA()" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-slate-950 text-xs font-bold rounded-xl transition-all">
+      <button onclick="installPWA()" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-slate-950 text-xs font-bold rounded-xl transition-all">
         Install
       </button>
     </div>
 
     <div class="text-center mb-3">
-      <span id="phaseTag" class="text-[10px] font-black uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-3 py-1 rounded-full">
-        Phase 1 • Chemical Pigment Injection
+      <span class="text-[10px] font-black uppercase tracking-widest bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1 rounded-full">
+        Full-Bleed Screen Illusion
       </span>
-      <h1 id="phaseHeading" class="text-xl font-black text-white mt-1.5 tracking-tight">Dispense Liquid Inks</h1>
-      <p id="phaseDesc" class="text-[11px] text-slate-400">Tap bath to inject floating oil pigments that displace organically</p>
+      <h1 class="text-xl font-black text-white mt-1.5 tracking-tight">Real Dipped Paint Glass</h1>
+      <p class="text-[11px] text-slate-400">Makes your physical phone look like it was pulled out of wet paint</p>
     </div>
 
-    <div class="relative w-full max-w-[270px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700/80 shadow-[inset_0_0_40px_rgba(0,0,0,0.9)] bg-[#03060c] mb-3 aspect-[9/16] perspective-1000">
+    <div class="relative w-full max-w-[270px] mx-auto rounded-[36px] overflow-hidden border-[6px] border-slate-950 shadow-2xl bg-black mb-3 aspect-[9/16]">
+      <canvas id="wallpaperCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
       
-      <canvas id="tankCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
-      
-      <div class="absolute inset-0 oil-sheen"></div>
-
-      <div id="rippleLayer" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
-
-      <div id="phoneRig" class="hidden absolute inset-2.5 rounded-[38px] border-[7px] border-slate-950 overflow-hidden bg-black shadow-2xl">
-        <div class="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-4 bg-black rounded-full z-40 flex items-center justify-end px-2">
-          <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-800"></div>
-        </div>
-        <canvas id="phoneSkinCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
-        <div class="absolute inset-0 bg-gradient-to-tr from-white/25 via-transparent to-black/60 pointer-events-none z-30"></div>
+      <div class="absolute top-12 left-0 right-0 text-center pointer-events-none">
+        <p class="text-5xl font-light text-white/80 tracking-tight">09:41</p>
+        <p class="text-xs font-medium text-white/50 mt-1">Thursday, September 3</p>
       </div>
-
     </div>
 
-    <div id="phase1Controls" class="space-y-3">
-      <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
-        <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Ink Tone:</span>
-        <div class="flex gap-2" id="paletteBar">
-          <button onclick="setPigment('#f43f5e', '#881337')" class="w-7 h-7 rounded-full bg-gradient-to-br from-rose-500 to-rose-950 border-2 border-white ring-2 ring-cyan-400 scale-110 ink-btn"></button>
-          <button onclick="setPigment('#06b6d4', '#083344')" class="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-950 border-2 border-transparent ink-btn"></button>
-          <button onclick="setPigment('#f59e0b', '#78350f')" class="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-amber-950 border-2 border-transparent ink-btn"></button>
-          <button onclick="setPigment('#a855f7', '#3b0764')" class="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-purple-950 border-2 border-transparent ink-btn"></button>
-          <button onclick="setPigment('#10b981', '#022c22')" class="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-950 border-2 border-transparent ink-btn"></button>
-          <button onclick="setPigment('#f8fafc', '#64748b')" class="w-7 h-7 rounded-full bg-gradient-to-br from-white to-slate-500 border-2 border-transparent ink-btn"></button>
+    <div class="space-y-3 text-xs">
+      
+      <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800 flex items-center justify-between">
+        <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Liquid Paint:</span>
+        <div class="flex gap-2">
+          <button onclick="setTheme('#e11d48', '#881337', '#fda4af')" title="Wet Crimson" class="w-7 h-7 rounded-full bg-rose-600 border-2 border-white ring-2 ring-rose-500 scale-110 color-btn"></button>
+          <button onclick="setTheme('#0284c7', '#082f49', '#7dd3fc')" title="Ocean Slime" class="w-7 h-7 rounded-full bg-sky-600 border-2 border-transparent color-btn"></button>
+          <button onclick="setTheme('#7c3aed', '#2e1065', '#d8b4fe')" title="Deep Toxic Violet" class="w-7 h-7 rounded-full bg-purple-600 border-2 border-transparent color-btn"></button>
+          <button onclick="setTheme('#10b981', '#022c22', '#6ee7b7')" title="Acid Green" class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-transparent color-btn"></button>
+          <button onclick="setTheme('#f59e0b', '#78350f', '#fde68a')" title="Molten Gold" class="w-7 h-7 rounded-full bg-amber-500 border-2 border-transparent color-btn"></button>
         </div>
       </div>
 
-      <button id="toSwirlPhaseBtn" onclick="enterSwirlPhase()" disabled class="w-full bg-slate-800 text-slate-500 font-black py-3 rounded-xl text-xs tracking-wider transition-all cursor-not-allowed">
-        Inject 4 Pigment Clusters (0/4)
-      </button>
-    </div>
+      <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-1">
+        <div class="flex justify-between font-bold text-slate-400 text-[10px] uppercase">
+          <span>Paint Submersion Level</span>
+          <span id="depthLabel" class="text-rose-400 font-mono">Bottom 40%</span>
+        </div>
+        <input id="depthSlider" type="range" min="15" max="65" value="40" oninput="adjustPaintLevel(this.value)" class="w-full accent-rose-500 cursor-pointer" />
+      </div>
 
-    <div id="phase2Controls" class="hidden space-y-2.5">
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="setCombTool('stylus')" id="toolStylus" class="py-2 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs transition-all shadow-md">
-          Single Stylus 🖋️
+      <div class="space-y-2">
+        <button onclick="randomizeDrips()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs transition-colors">
+          Reroll Random Paint Drips 🎲
         </button>
-        <button onclick="setCombTool('comb')" id="toolComb" class="py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:text-white transition-all">
-          Triple Rake Comb 🔱
+
+        <button onclick="downloadWallpaper()" class="w-full bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-rose-500/20 active:scale-95 transition-all">
+          Download 1-of-1 Dipped Wallpaper 📥
         </button>
       </div>
 
-      <button onclick="submergeAndExtractPhone()" class="w-full bg-gradient-to-r from-cyan-400 via-sky-500 to-rose-500 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-cyan-500/20 active:scale-95 transition-all">
-        Dip Hands & Pull Out Coated Phone 📱🌊
-      </button>
-    </div>
-
-    <div id="phase3Controls" class="hidden space-y-2">
-      <button onclick="exportDippedWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
-        Download 1-of-1 Dipped Wallpaper 📥
-      </button>
-      <button onclick="resetEntireChamber()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs transition-colors">
-        Fresh Tank (Clean Water) 🔄
-      </button>
     </div>
 
     <div class="mt-6 pt-4 border-t border-slate-800 flex justify-center">
@@ -150,351 +86,174 @@
   </main>
 
   <script>
-    const canvas = document.getElementById('tankCanvas');
+    const canvas = document.getElementById('wallpaperCanvas');
     const ctx = canvas.getContext('2d');
     const W = 1080;
     const H = 1920;
 
-    let activePhase = 1;
-    let primaryInk = '#f43f5e';
-    let shadeInk = '#881337';
-    let inkDrops = [];
-    let isStirring = false;
-    let combTool = 'stylus';
-    let previousPoint = null;
+    let paintColor = '#e11d48';
+    let darkTone = '#881337';
+    let lightTone = '#fda4af';
+    let dipHeight = 0.40; // 40% from bottom
 
-    class FluidMarblingCluster {
-      constructor(cx, cy, radius, color, darkTone) {
-        this.cx = cx;
-        this.cy = cy;
-        this.radius = radius;
-        this.color = color;
-        this.darkTone = darkTone;
-        this.strands = [];
+    // Procedural liquid drips
+    let liquidStreams = [];
 
-        const totalRings = 9;
-        for (let r = 1; r <= totalRings; r++) {
-          const vertices = [];
-          const pts = 160;
-          const rDist = (radius / totalRings) * r;
-          
-          for (let i = 0; i < pts; i++) {
-            const angle = (i / pts) * Math.PI * 2;
-            const waveJitter = 1 + (Math.sin(i * 6) * 0.035) + (Math.cos(i * 3) * 0.025);
-            vertices.push({
-              x: cx + Math.cos(angle) * rDist * waveJitter,
-              y: cy + Math.sin(angle) * rDist * waveJitter
-            });
-          }
-
-          this.strands.push({
-            vertices,
-            isPerimeter: r === totalRings,
-            depthFactor: r / totalRings
-          });
-        }
-      }
-
-      displaceByNewInk(newCluster) {
-        for (let s of this.strands) {
-          for (let v of s.vertices) {
-            const dx = v.x - newCluster.cx;
-            const dy = v.y - newCluster.cy;
-            const d = Math.hypot(dx, dy);
-            const factor = Math.sqrt(1 + (newCluster.radius * newCluster.radius) / (d * d || 0.001));
-            v.x = newCluster.cx + dx * factor;
-            v.y = newCluster.cy + dy * factor;
-          }
-        }
-      }
-
-      applyCombForce(x0, y0, x1, y1) {
-        const dx = x1 - x0;
-        const dy = y1 - y0;
-        const mag = Math.hypot(dx, dy);
-        if (mag === 0) return;
-        const uX = dx / mag;
-        const uY = dy / mag;
-
-        const power = 55;
-        const decay = 90;
-
-        for (let s of this.strands) {
-          for (let v of s.vertices) {
-            const pX = v.x - x0;
-            const pY = v.y - y0;
-            const perpDist = Math.abs(pX * (-uY) + pY * uX);
-            const pull = power * Math.exp(-perpDist / decay);
-            
-            const curl = Math.sin(perpDist * 0.05) * 8;
-            v.x += uX * pull + (-uY * curl);
-            v.y += uY * pull + (uX * curl);
-          }
-        }
-      }
-
-      draw(targetCtx) {
-        for (let s of this.strands) {
-          targetCtx.beginPath();
-          
-          if (s.isPerimeter) {
-            targetCtx.fillStyle = this.darkTone;
-            targetCtx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-            targetCtx.shadowBlur = 8;
-          } else {
-            targetCtx.fillStyle = this.color;
-            targetCtx.shadowBlur = 0;
-          }
-
-          for (let i = 0; i < s.vertices.length; i++) {
-            const v = s.vertices[i];
-            if (i === 0) targetCtx.moveTo(v.x, v.y);
-            else targetCtx.lineTo(v.x, v.y);
-          }
-          targetCtx.closePath();
-          targetCtx.fill();
-        }
-        targetCtx.shadowBlur = 0;
+    function generateStreams() {
+      liquidStreams = [];
+      const numStreams = 8;
+      for (let i = 0; i < numStreams; i++) {
+        liquidStreams.push({
+          x: 100 + (i * 125) + (Math.random() * 40 - 20),
+          len: 120 + Math.random() * 320,
+          width: 32 + Math.random() * 35,
+          bulbSize: 18 + Math.random() * 16
+        });
       }
     }
 
-    function initLiquidSurface() {
-      const grad = ctx.createRadialGradient(W/2, H/2, 150, W/2, H/2, W);
-      grad.addColorStop(0, '#09101d');
-      grad.addColorStop(1, '#020306');
-      ctx.fillStyle = grad;
+    function setTheme(main, dark, light) {
+      paintColor = main;
+      darkTone = dark;
+      lightTone = light;
+
+      document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.classList.remove('scale-110', 'border-white', 'ring-2', 'ring-rose-500');
+        btn.classList.add('border-transparent');
+      });
+      event.target.classList.add('scale-110', 'border-white', 'ring-2', 'ring-rose-500');
+      event.target.classList.remove('border-transparent');
+
+      renderDippedGlass();
+    }
+
+    function adjustPaintLevel(val) {
+      dipHeight = val / 100;
+      document.getElementById('depthLabel').innerText = `Bottom ${val}%`;
+      renderDippedGlass();
+    }
+
+    function randomizeDrips() {
+      generateStreams();
+      renderDippedGlass();
+    }
+
+    function renderDippedGlass() {
+      // 1. Deep OLED Pitch Black Glass Top (Preserves phone battery and lock screen clock legibility)
+      ctx.fillStyle = '#010204';
+      ctx.fillRect(0, 0, W, H);
+
+      // 2. Subtle glass studio diagonal sheen
+      const glassReflect = ctx.createLinearGradient(0, 0, W, H);
+      glassReflect.addColorStop(0.15, 'rgba(255, 255, 255, 0.05)');
+      glassReflect.addColorStop(0.25, 'rgba(255, 255, 255, 0.01)');
+      glassReflect.addColorStop(0.5, 'transparent');
+      ctx.fillStyle = glassReflect;
+      ctx.fillRect(0, 0, W, H);
+
+      const waterlineY = H - (H * dipHeight);
+
+      // 3. Thick Viscous Paint Slab at Bottom
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      ctx.lineTo(0, waterlineY);
+
+      // Meniscus liquid wave curve
+      ctx.bezierCurveTo(W * 0.25, waterlineY - 35, W * 0.75, waterlineY + 40, W, waterlineY);
+      ctx.lineTo(W, H);
+      ctx.closePath();
+
+      // Liquid depth gradient
+      const paintGrad = ctx.createLinearGradient(0, waterlineY, 0, H);
+      paintGrad.addColorStop(0, paintColor);
+      paintGrad.addColorStop(0.35, darkTone);
+      paintGrad.addColorStop(1, '#050203');
+      ctx.fillStyle = paintGrad;
+      ctx.fill();
+
+      // 4. Downward Viscous Drips & Gravity Fingers
+      liquidStreams.forEach(stream => {
+        const startY = waterlineY;
+        const endY = waterlineY + stream.len;
+
+        // Drip spine
+        ctx.beginPath();
+        ctx.fillStyle = paintColor;
+        ctx.moveTo(stream.x - stream.width / 2, startY);
+        ctx.quadraticCurveTo(stream.x - stream.width / 4, endY - 30, stream.x, endY);
+        ctx.quadraticCurveTo(stream.x + stream.width / 4, endY - 30, stream.x + stream.width / 2, startY);
+        ctx.fill();
+
+        // Droplet teardrop bulb
+        ctx.beginPath();
+        ctx.arc(stream.x, endY, stream.bulbSize, 0, Math.PI * 2);
+        ctx.fillStyle = paintColor;
+        ctx.fill();
+
+        // High gloss liquid specular core
+        ctx.beginPath();
+        ctx.arc(stream.x - stream.bulbSize * 0.25, endY - stream.bulbSize * 0.25, stream.bulbSize * 0.35, 0, Math.PI * 2);
+        ctx.fillStyle = lightTone;
+        ctx.fill();
+
+        // Linear light reflection down the spine of the drip
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(stream.x - 3, startY + 15);
+        ctx.lineTo(stream.x - 3, endY - stream.bulbSize * 0.6);
+        ctx.stroke();
+      });
+
+      // 5. Heavy Surface Tension Meniscus Ridge (The raised wet bead of paint)
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = lightTone;
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.4)';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(0, waterlineY);
+      ctx.bezierCurveTo(W * 0.25, waterlineY - 35, W * 0.75, waterlineY + 40, W, waterlineY);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 6. Scattered Wet Paint Splatters Above Waterline
+      const splatters = [
+        { x: 180, y: waterlineY - 70, r: 8 },
+        { x: 360, y: waterlineY - 140, r: 12 },
+        { x: 520, y: waterlineY - 95, r: 6 },
+        { x: 740, y: waterlineY - 180, r: 14 },
+        { x: 880, y: waterlineY - 60, r: 9 }
+      ];
+
+      splatters.forEach(s => {
+        // Droplet body
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = paintColor;
+        ctx.fill();
+
+        // Specular dot
+        ctx.beginPath();
+        ctx.arc(s.x - s.r * 0.3, s.y - s.r * 0.3, s.r * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = lightTone;
+        ctx.fill();
+      });
+
+      // 7. Full-Bleed Curved Edge Shadow (Simulates paint wrapping over native phone glass bezels)
+      const edgeVignette = ctx.createRadialGradient(W/2, H/2, W * 0.45, W/2, H/2, W * 0.72);
+      edgeVignette.addColorStop(0, 'rgba(0,0,0,0)');
+      edgeVignette.addColorStop(0.85, 'rgba(0,0,0,0.4)');
+      edgeVignette.addColorStop(1, 'rgba(0,0,0,0.9)');
+      ctx.fillStyle = edgeVignette;
       ctx.fillRect(0, 0, W, H);
     }
 
-    function setPigment(primary, shade) {
-      primaryInk = primary;
-      shadeInk = shade;
-      document.querySelectorAll('.ink-btn').forEach(btn => {
-        btn.classList.remove('scale-110', 'border-white', 'ring-2', 'ring-cyan-400');
-        btn.classList.add('border-transparent');
-      });
-      event.target.classList.add('scale-110', 'border-white', 'ring-2', 'ring-cyan-400');
-      event.target.classList.remove('border-transparent');
-    }
-
-    function spawnInkDrop(x, y) {
-      triggerWaterRipples(x, y);
-
-      const rad = 150 + Math.random() * 95;
-      const cluster = new FluidMarblingCluster(x, y, rad, primaryInk, shadeInk);
-      
-      for (let c of inkDrops) {
-        c.displaceByNewInk(cluster);
-      }
-      inkDrops.push(cluster);
-      redrawFluidScene();
-
-      if (activePhase === 1) {
-        const btn = document.getElementById('toSwirlPhaseBtn');
-        if (inkDrops.length >= 4) {
-          btn.disabled = false;
-          btn.className = "w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider transition-all shadow-lg shadow-cyan-500/20";
-          btn.innerText = `Water Ready! Enter Comb Stage ➔ (${inkDrops.length} Drops)`;
-        } else {
-          btn.innerText = `Inject 4 Pigment Clusters (${inkDrops.length}/4)`;
-        }
-      }
-    }
-
-    function triggerWaterRipples(x, y) {
-      const container = document.getElementById('rippleLayer');
-      const rect = canvas.getBoundingClientRect();
-      const sX = (x / W) * rect.width;
-      const sY = (y / H) * rect.height;
-
-      const ripple = document.createElement('div');
-      ripple.className = 'absolute rounded-full border border-cyan-400/60 ripple-ring pointer-events-none -translate-x-1/2 -translate-y-1/2';
-      ripple.style.left = `${sX}px`;
-      ripple.style.top = `${sY}px`;
-      ripple.style.width = '50px';
-      ripple.style.height = '50px';
-
-      container.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 1400);
-    }
-
-    function redrawFluidScene() {
-      initLiquidSurface();
-      for (let c of inkDrops) {
-        c.draw(ctx);
-      }
-    }
-
-    function setCombTool(tool) {
-      combTool = tool;
-      const bStylus = document.getElementById('toolStylus');
-      const bComb = document.getElementById('toolComb');
-
-      if (tool === 'stylus') {
-        bStylus.className = "py-2 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs transition-all shadow-md";
-        bComb.className = "py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:text-white transition-all";
-      } else {
-        bComb.className = "py-2 rounded-xl bg-cyan-500 text-slate-950 font-black text-xs transition-all shadow-md";
-        bStylus.className = "py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:text-white transition-all";
-      }
-    }
-
-    function enterSwirlPhase() {
-      activePhase = 2;
-      document.getElementById('phaseTag').innerText = 'Phase 2 • Ebru Rake & Swirl';
-      document.getElementById('phaseTag').className = 'text-[10px] font-black uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-3 py-1 rounded-full';
-      document.getElementById('phaseHeading').innerText = 'Comb & Marble Surface';
-      document.getElementById('phaseDesc').innerText = 'Drag across the liquid to stretch paint into fine interwoven ribbons';
-      document.getElementById('phase1Controls').classList.add('hidden');
-      document.getElementById('phase2Controls').classList.remove('hidden');
-    }
-
-    canvas.addEventListener('pointerdown', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (W / rect.width);
-      const y = (e.clientY - rect.top) * (H / rect.height);
-
-      if (activePhase === 1) {
-        spawnInkDrop(x, y);
-      } else if (activePhase === 2) {
-        isStirring = true;
-        previousPoint = { x, y };
-      }
-    });
-
-    window.addEventListener('pointermove', (e) => {
-      if (activePhase !== 2 || !isStirring || !previousPoint) return;
-      const rect = canvas.getBoundingClientRect();
-      const current = {
-        x: (e.clientX - rect.left) * (W / rect.width),
-        y: (e.clientY - rect.top) * (H / rect.height)
-      };
-
-      if (combTool === 'stylus') {
-        for (let c of inkDrops) {
-          c.applyCombForce(previousPoint.x, previousPoint.y, current.x, current.y);
-        }
-      } else {
-        const offsets = [-75, 0, 75];
-        const dx = current.x - previousPoint.x;
-        const dy = current.y - previousPoint.y;
-        const mag = Math.hypot(dx, dy) || 1;
-        const perpX = (-dy / mag);
-        const perpY = (dx / mag);
-
-        for (let off of offsets) {
-          for (let c of inkDrops) {
-            c.applyCombForce(
-              previousPoint.x + perpX * off,
-              previousPoint.y + perpY * off,
-              current.x + perpX * off,
-              current.y + perpY * off
-            );
-          }
-        }
-      }
-
-      previousPoint = current;
-      redrawFluidScene();
-    });
-
-    window.addEventListener('pointerup', () => {
-      isStirring = false;
-      previousPoint = null;
-    });
-
-    // Realistic Immersion & Post-Dip Processing Engine
-    function submergeAndExtractPhone() {
-      activePhase = 3;
-      const phoneRig = document.getElementById('phoneRig');
-      const skinCanvas = document.getElementById('phoneSkinCanvas');
-      const skinCtx = skinCanvas.getContext('2d');
-
-      // 1. Transfer core hydro marbling pattern
-      skinCtx.drawImage(canvas, 0, 0);
-
-      // 2. Wrap curved screen bevels (darkens outer edges where paint rounds phone corners)
-      const edgeVignette = skinCtx.createRadialGradient(W/2, H/2, W * 0.42, W/2, H/2, W * 0.68);
-      edgeVignette.addColorStop(0, 'rgba(0,0,0,0)');
-      edgeVignette.addColorStop(0.85, 'rgba(0,0,0,0.4)');
-      edgeVignette.addColorStop(1, 'rgba(0,0,0,0.85)');
-      skinCtx.fillStyle = edgeVignette;
-      skinCtx.fillRect(0, 0, W, H);
-
-      // 3. Clear-Coat Glare & Specular Reflection Beam
-      const glossBeam = skinCtx.createLinearGradient(0, 0, W, H);
-      glossBeam.addColorStop(0.18, 'rgba(255,255,255,0.22)');
-      glossBeam.addColorStop(0.24, 'rgba(255,255,255,0.05)');
-      glossBeam.addColorStop(0.40, 'transparent');
-      glossBeam.addColorStop(0.68, 'rgba(255,255,255,0.08)');
-      glossBeam.addColorStop(0.72, 'transparent');
-      skinCtx.fillStyle = glossBeam;
-      skinCtx.fillRect(0, 0, W, H);
-
-      // 4. Paint Water Droplets (Scattered beaded condensation from extraction)
-      drawWaterCondensation(skinCtx);
-
-      // 5. Anti-Screenshot Sub-Pixel Grating
-      skinCtx.lineWidth = 1;
-      for (let y = 0; y < H; y += 4) {
-        skinCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)';
-        skinCtx.beginPath();
-        skinCtx.moveTo(0, y);
-        skinCtx.lineTo(W, y);
-        skinCtx.stroke();
-      }
-
-      phoneRig.classList.remove('hidden');
-      phoneRig.classList.add('dip-extract-anim');
-
-      document.getElementById('phaseTag').innerText = 'Phase 3 • Dipped, Extracted & Cured';
-      document.getElementById('phaseTag').className = 'text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full';
-      document.getElementById('phaseHeading').innerText = 'Extracted From Bath ✨';
-      document.getElementById('phaseDesc').innerText = 'Your phone emerged coated in fresh clear-coat fluid marbling';
-
-      document.getElementById('phase2Controls').classList.add('hidden');
-      document.getElementById('phase3Controls').classList.remove('hidden');
-    }
-
-    function drawWaterCondensation(tCtx) {
-      const dropCount = 45;
-      for (let i = 0; i < dropCount; i++) {
-        const x = Math.random() * W;
-        const y = Math.random() * H;
-        const r = 4 + Math.random() * 12;
-
-        // Droplet drop shadow
-        tCtx.beginPath();
-        tCtx.arc(x + 2, y + 3, r, 0, Math.PI * 2);
-        tCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-        tCtx.fill();
-
-        // Droplet body
-        tCtx.beginPath();
-        tCtx.arc(x, y, r, 0, Math.PI * 2);
-        const dropGrad = tCtx.createRadialGradient(x - r*0.3, y - r*0.3, r*0.1, x, y, r);
-        dropGrad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-        dropGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
-        dropGrad.addColorStop(0.9, 'rgba(0, 0, 0, 0.25)');
-        dropGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
-        tCtx.fillStyle = dropGrad;
-        tCtx.fill();
-
-        // Specular highlight dot
-        tCtx.beginPath();
-        tCtx.arc(x - r*0.35, y - r*0.35, r*0.25, 0, Math.PI * 2);
-        tCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-        tCtx.fill();
-      }
-    }
-
-    function exportDippedWallpaper() {
-      const skinCanvas = document.getElementById('phoneSkinCanvas');
-      skinCanvas.toBlob((blob) => {
+    function downloadWallpaper() {
+      canvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.download = `hydro-dipped-phone-${Date.now()}.png`;
+        a.download = `dipped-screen-${Date.now()}.png`;
         a.href = url;
         document.body.appendChild(a);
         a.click();
@@ -503,27 +262,6 @@
           URL.revokeObjectURL(url);
         }, 300);
       }, 'image/png');
-    }
-
-    function resetEntireChamber() {
-      inkDrops = [];
-      activePhase = 1;
-      document.getElementById('phoneRig').classList.add('hidden');
-      document.getElementById('phoneRig').classList.remove('dip-extract-anim');
-      document.getElementById('phase3Controls').classList.add('hidden');
-      document.getElementById('phase1Controls').classList.remove('hidden');
-
-      const btn = document.getElementById('toSwirlPhaseBtn');
-      btn.disabled = true;
-      btn.className = "w-full bg-slate-800 text-slate-500 font-black py-3 rounded-xl text-xs tracking-wider transition-all cursor-not-allowed";
-      btn.innerText = "Inject 4 Pigment Clusters (0/4)";
-
-      document.getElementById('phaseTag').innerText = 'Phase 1 • Chemical Pigment Injection';
-      document.getElementById('phaseTag').className = 'text-[10px] font-black uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-3 py-1 rounded-full';
-      document.getElementById('phaseHeading').innerText = 'Dispense Liquid Inks';
-      document.getElementById('phaseDesc').innerText = 'Tap bath to inject floating oil pigments that displace organically';
-
-      initLiquidSurface();
     }
 
     let deferredPrompt = null;
@@ -548,7 +286,8 @@
       });
     }
 
-    initLiquidSurface();
+    generateStreams();
+    renderDippedGlass();
   </script>
 </body>
 </html>
