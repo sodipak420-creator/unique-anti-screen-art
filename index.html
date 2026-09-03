@@ -4,6 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>Hydro Dip 1-of-1 Studio</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#ec4899" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { touch-action: none; }
@@ -40,6 +45,18 @@
 
   <main class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
     
+    <!-- PWA Install Banner -->
+    <div id="installBanner" class="hidden mb-4 p-3 bg-pink-500/10 border border-pink-500/30 rounded-2xl flex items-center justify-between">
+      <div class="text-xs">
+        <p class="font-bold text-pink-400">Install Hydro Dip App</p>
+        <p class="text-slate-400">Add to home screen for offline dips</p>
+      </div>
+      <button onclick="installPWA()" class="px-3 py-1.5 bg-pink-500 hover:bg-pink-600 text-slate-950 text-xs font-bold rounded-xl transition-all">
+        Install
+      </button>
+    </div>
+
+    <!-- Step Header -->
     <div class="text-center mb-3">
       <span id="stepBadge" class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
         Step 1: Color The Water
@@ -48,10 +65,13 @@
       <p id="stepDesc" class="text-[11px] text-slate-400">Pick a color, then tap inside the tank to spread fluid paint rings</p>
     </div>
 
+    <!-- Hydro Bath Screen Container -->
     <div class="relative w-full max-w-[270px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-[#08080f] mb-3 aspect-[9/16] perspective-1000">
       
+      <!-- Water Surface Canvas -->
       <canvas id="waterCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
 
+      <!-- 3D Phone Shell (Revealed during dip) -->
       <div id="phoneDipRig" class="hidden absolute inset-3 rounded-[36px] border-[6px] border-slate-950 overflow-hidden bg-black shadow-2xl">
         <div class="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 bg-black rounded-full z-30"></div>
         <canvas id="dippedSkinCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
@@ -60,6 +80,7 @@
 
     </div>
 
+    <!-- Step 1 Dropper Panel -->
     <div id="step1Controls" class="space-y-3">
       <div class="flex items-center justify-between bg-slate-950 p-2 rounded-xl border border-slate-800">
         <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Paint Color:</span>
@@ -78,6 +99,7 @@
       </button>
     </div>
 
+    <!-- Step 2 Swirl Panel -->
     <div id="step2Controls" class="hidden space-y-2">
       <p class="text-[11px] text-center text-cyan-400 font-semibold animate-pulse">
         Drag your finger across the bath to marble the paint ribbons!
@@ -87,6 +109,7 @@
       </button>
     </div>
 
+    <!-- Step 3 Export Panel -->
     <div id="step3Controls" class="hidden space-y-2">
       <button onclick="downloadDippedWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
         Save 1-of-1 Dipped Wallpaper 📥
@@ -96,12 +119,31 @@
       </button>
     </div>
 
+    <!-- Adsterra Monetization Slot -->
     <div class="mt-6 pt-4 border-t border-slate-800 flex justify-center">
       <iframe srcdoc="<!DOCTYPE html><html><head></head><body style='margin:0;display:flex;justify-content:center;'><script type='text/javascript'>atOptions={'key':'45775fbece61c0f117b4d413d29f50b6','format':'iframe','height':50,'width':320,'params':{}};</script><script type='text/javascript' src='https://www.highrevenueformat.com/45775fbece61c0f117b4d413d29f50b6/invoke.js'></script></body></html>" width="320" height="50" style="border:none; overflow:hidden;" scrolling="no" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation"></iframe>
     </div>
   </main>
 
   <script>
+    let deferredPrompt = null;
+
+    // Listen for browser install prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.remove('hidden');
+    });
+
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        document.getElementById('installBanner').classList.add('hidden');
+      });
+    }
+
     const canvas = document.getElementById('waterCanvas');
     const ctx = canvas.getContext('2d');
     const W = 1080;
@@ -113,7 +155,6 @@
     let isSwirling = false;
     let lastPoint = null;
 
-    // Fluid Marbling Drop Class with Multi-Ring Layering
     class MarblingDrop {
       constructor(cx, cy, r, color) {
         this.cx = cx;
@@ -122,7 +163,6 @@
         this.color = color;
         this.layers = [];
 
-        // Generate concentric liquid rings
         const ringCounts = 5;
         for (let ring = 1; ring <= ringCounts; ring++) {
           const vertices = [];
@@ -344,6 +384,15 @@
       document.getElementById('stepDesc').innerText = 'Pick a color, then tap inside the tank to spread fluid paint rings';
 
       initBath();
+    }
+
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('SW Registered'))
+          .catch((err) => console.log('SW Error', err));
+      });
     }
 
     initBath();
