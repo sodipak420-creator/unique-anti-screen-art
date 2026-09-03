@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Hydro Dipping 1-of-1 Transfer Studio</title>
+  <title>Hydro Immersion Wallpaper Engine</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ec4899" />
@@ -16,25 +16,21 @@
 
     @keyframes plungeDip {
       0% {
-        transform: translateY(-120%) scale(0.8) rotateX(35deg);
-        opacity: 0;
+        transform: translateY(-110%) scale(0.9);
+        opacity: 0.2;
       }
-      40% {
-        transform: translateY(0%) scale(1) rotateX(0deg);
+      50% {
+        transform: translateY(0%) scale(1);
         opacity: 1;
         box-shadow: 0 0 50px rgba(236, 72, 153, 0.7);
       }
-      70% {
-        transform: translateY(4%) scale(1.02);
-      }
       100% {
         transform: translateY(0%) scale(1);
-        box-shadow: 0 25px 50px rgba(0,0,0,0.9);
       }
     }
 
-    .dip-active {
-      animation: plungeDip 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    .animate-dip {
+      animation: plungeDip 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
   </style>
 </head>
@@ -42,38 +38,34 @@
 
   <main class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
     
-    <div id="installBanner" class="hidden mb-4 p-3 bg-pink-500/10 border border-pink-500/30 rounded-2xl flex items-center justify-between">
-      <div class="text-xs">
-        <p class="font-bold text-pink-400">Install Hydro Studio</p>
-        <p class="text-slate-400">Dip custom wallpapers offline</p>
-      </div>
-      <button onclick="installPWA()" class="px-3 py-1.5 bg-pink-500 hover:bg-pink-600 text-slate-950 text-xs font-bold rounded-xl transition-all">
-        Install
-      </button>
-    </div>
-
+    <!-- Header -->
     <div class="text-center mb-3">
       <span id="stepBadge" class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
-        Step 1: Prep Fluid Tank
+        Step 1 • Surface Marbling
       </span>
-      <h1 id="stepTitle" class="text-xl font-black text-white mt-1">Drip & Swirl Colors</h1>
-      <p id="stepDesc" class="text-[11px] text-slate-400">Tap to drip, drag to swirl paint on the water</p>
+      <h1 id="stepTitle" class="text-xl font-black text-white mt-1">Water Bath Chamber</h1>
+      <p id="stepDesc" class="text-[11px] text-slate-400">Add colors and drag your finger to swirl ribbons across the surface</p>
     </div>
 
-    <div class="relative w-full max-w-[270px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-3 aspect-[9/16] perspective-1000">
+    <!-- Active Chamber & Immersion Rig -->
+    <div class="relative w-full max-w-[270px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-3 aspect-[9/16]">
       
+      <!-- Water Surface Bath -->
       <canvas id="tankCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
 
+      <!-- The Dipped Phone Receiving the Film -->
       <div id="phoneRig" class="hidden absolute inset-2.5 rounded-[36px] border-[6px] border-slate-950 overflow-hidden bg-black shadow-2xl">
         <div class="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 bg-black rounded-full z-30"></div>
-        <canvas id="transferredSkinCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
+        <canvas id="dippedCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
+        <div class="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-black/40 pointer-events-none z-20"></div>
       </div>
 
     </div>
 
+    <!-- Step 1 Controls -->
     <div id="step1Controls" class="space-y-3">
       <div class="flex items-center justify-between bg-slate-950 p-2 rounded-xl border border-slate-800">
-        <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Ink Color:</span>
+        <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Pigment:</span>
         <div class="flex gap-2" id="paletteBar">
           <button onclick="pickColor('#f43f5e')" class="w-7 h-7 rounded-full bg-rose-500 border-2 border-white ring-2 ring-pink-500 scale-110 color-btn"></button>
           <button onclick="pickColor('#06b6d4')" class="w-7 h-7 rounded-full bg-cyan-500 border-2 border-transparent color-btn"></button>
@@ -85,22 +77,22 @@
       </div>
 
       <div class="flex gap-2">
-        <button onclick="clearTank()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-colors">
-          Clear 🌊
+        <button onclick="seedTank()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-colors">
+          Reset Tank 🌊
         </button>
-        <button onclick="executeHydroDipTransfer()" class="w-2/3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
-          Dip Phone Into Paint 📱🌊
+        <button onclick="calculateTopDownDip()" class="w-2/3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+          Dip Phone From Top 📱⬇️
         </button>
       </div>
-      <p class="text-[10px] text-center text-slate-500">Tap anywhere to add color rings • Drag to swirl</p>
     </div>
 
+    <!-- Step 2 Controls -->
     <div id="step2Controls" class="hidden space-y-2">
-      <button onclick="downloadTransferredWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
-        Download 1-of-1 Transferred Wallpaper 📥
+      <button onclick="downloadWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+        Download 1-of-1 Adhered Wallpaper 📥
       </button>
       <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-colors">
-        Fresh Water Bath 🔄
+        Fresh Tank 🔄
       </button>
     </div>
 
@@ -109,10 +101,12 @@
   <script>
     const tankCanvas = document.getElementById('tankCanvas');
     const tankCtx = tankCanvas.getContext('2d');
+    const dippedCanvas = document.getElementById('dippedCanvas');
+    const dippedCtx = dippedCanvas.getContext('2d');
     const W = 1080;
     const H = 1920;
 
-    let selectedColor = '#f43f5e';
+    let currentColor = '#f43f5e';
     let drops = [];
     let isSwirling = false;
     let lastPoint = null;
@@ -149,16 +143,16 @@
         if (mag === 0) return;
         const uX = dx / mag;
         const uY = dy / mag;
-        const power = 38;
-        const decay = 65;
+        const power = 42;
+        const decay = 75;
 
         for (let v of this.vertices) {
           const pX = v.x - x0;
           const pY = v.y - y0;
           const perp = Math.abs(pX * (-uY) + pY * uX);
           const pull = power * Math.exp(-perp / decay);
-          v.x += uX * pull;
-          v.y += uY * pull;
+          v.x += uX * power;
+          v.y += uY * power;
         }
       }
 
@@ -176,12 +170,12 @@
     }
 
     function initTank() {
-      tankCtx.fillStyle = '#060911';
+      tankCtx.fillStyle = '#060913';
       tankCtx.fillRect(0, 0, W, H);
     }
 
     function pickColor(hex) {
-      selectedColor = hex;
+      currentColor = hex;
       document.querySelectorAll('.color-btn').forEach(b => {
         b.classList.remove('scale-110', 'border-white', 'ring-2', 'ring-pink-500');
         b.classList.add('border-transparent');
@@ -190,11 +184,26 @@
       event.target.classList.remove('border-transparent');
     }
 
-    function addInk(x, y) {
-      const r = 120 + Math.random() * 80;
-      const drop = new FluidDrop(x, y, r, selectedColor);
-      for (let d of drops) d.displace(drop);
-      drops.push(drop);
+    function addDrop(x, y) {
+      const r = 130 + Math.random() * 80;
+      const d = new FluidDrop(x, y, r, currentColor);
+      for (let existing of drops) existing.displace(d);
+      drops.push(d);
+      renderTank();
+    }
+
+    function seedTank() {
+      drops = [];
+      const presets = ['#0f051d', '#e11d48', '#9333ea', '#06b6d4', '#fbbf24', '#ffffff'];
+      for (let i = 0; i < 28; i++) {
+        const x = W / 2 + (Math.random() - 0.5) * 500;
+        const y = H / 2 + (Math.random() - 0.5) * 900;
+        const r = 110 + Math.random() * 110;
+        const col = presets[i % presets.length];
+        const d = new FluidDrop(x, y, r, col);
+        for (let existing of drops) existing.displace(d);
+        drops.push(d);
+      }
       renderTank();
     }
 
@@ -209,7 +218,7 @@
       const y = (e.clientY - rect.top) * (H / rect.height);
       isSwirling = true;
       lastPoint = { x, y };
-      addInk(x, y);
+      addDrop(x, y);
     });
 
     window.addEventListener('pointermove', (e) => {
@@ -220,9 +229,7 @@
         y: (e.clientY - rect.top) * (H / rect.height)
       };
 
-      for (let d of drops) {
-        d.tine(lastPoint.x, lastPoint.y, cur.x, cur.y);
-      }
+      for (let d of drops) d.tine(lastPoint.x, lastPoint.y, cur.x, cur.y);
       lastPoint = cur;
       renderTank();
     });
@@ -232,108 +239,76 @@
       lastPoint = null;
     });
 
-    // PHYSICAL TRANSFER ENGINE (Deforms the floating film onto the glass)
-    function executeHydroDipTransfer() {
-      if (drops.length === 0) {
-        alert("Tap the water to add paint first!");
-        return;
-      }
+    // Millimeter Calculation Engine for Top-Down Adhesion
+    function calculateTopDownDip() {
+      if (drops.length === 0) return;
 
-      const phoneRig = document.getElementById('phoneRig');
-      const skinCanvas = document.getElementById('transferredSkinCanvas');
-      const skinCtx = skinCanvas.getContext('2d');
+      const srcData = tankCtx.getImageData(0, 0, W, H).data;
+      const destImage = dippedCtx.createImageData(W, H);
+      const dest = destImage.data;
 
-      // 1. Get raw source pixels from the water tank
-      const srcData = tankCtx.getImageData(0, 0, W, H);
-      const srcPixels = srcData.data;
-
-      // 2. Create warped destination buffer
-      const destData = skinCtx.createImageData(W, H);
-      const destPixels = destData.data;
-
-      const centerX = W / 2;
-      const centerY = H / 2;
-      const maxDist = Math.hypot(centerX, centerY);
-
-      // Hydrodynamic deformation math: pulls the film inward as water pushes outward
+      // Scan and calculate line-by-line from y = 0 to y = H
       for (let y = 0; y < H; y++) {
+        // Physical immersion ratio along the dipping vector
+        const immersionRatio = y / H;
+        
+        // As the phone cuts deeper into the liquid:
+        // - Lateral compression pushes paint outward toward the glass perimeter
+        // - Liquid drag pulls color downward along the entry path
+        const dragFactor = Math.sin(immersionRatio * Math.PI * 0.5) * 45;
+        const compressFactor = 1.0 + Math.pow(immersionRatio, 1.4) * 0.28;
+
         for (let x = 0; x < W; x++) {
-          const dx = x - centerX;
-          const dy = y - centerY;
-          const r = Math.hypot(dx, dy) / maxDist;
-          const angle = Math.atan2(dy, dx);
+          const normX = (x - W / 2) / (W / 2); // -1.0 to 1.0
 
-          // Hydro-shear equation: stretch edges, twist center, and wrap borders
-          const pinch = Math.pow(r, 0.78);
-          const twist = Math.sin(r * 3.5) * 0.12;
+          // Calculate displaced source sampling coordinates
+          const displacedX = (W / 2) + (normX * (W / 2) / compressFactor);
+          const displacedY = y - dragFactor;
 
-          let srcX = Math.floor(centerX + Math.cos(angle + twist) * (pinch * maxDist));
-          let srcY = Math.floor(centerY + Math.sin(angle + twist) * (pinch * maxDist));
-
-          // Clamp coordinates
-          srcX = Math.max(0, Math.min(W - 1, srcX));
-          srcY = Math.max(0, Math.min(H - 1, srcY));
+          const sX = Math.max(0, Math.min(W - 1, Math.round(displacedX)));
+          const sY = Math.max(0, Math.min(H - 1, Math.round(displacedY)));
 
           const destIdx = (y * W + x) * 4;
-          const srcIdx = (srcY * W + srcX) * 4;
+          const srcIdx = (sY * W + sX) * 4;
 
-          destPixels[destIdx]     = srcPixels[srcIdx];
-          destPixels[destIdx + 1] = srcPixels[srcIdx + 1];
-          destPixels[destIdx + 2] = srcPixels[srcIdx + 2];
-          destPixels[destIdx + 3] = 255;
+          dest[destIdx]     = srcData[srcIdx];
+          dest[destIdx + 1] = srcData[srcIdx + 1];
+          dest[destIdx + 2] = srcData[srcIdx + 2];
+          dest[destIdx + 3] = 255;
         }
       }
 
-      skinCtx.putImageData(destData, 0, 0);
+      dippedCtx.putImageData(destImage, 0, 0);
 
-      // 3. Physical Wrap Vignette (Darkens the borders where paint folds around the edges)
-      const edgeVignette = skinCtx.createRadialGradient(centerX, centerY, W * 0.38, centerX, centerY, W * 0.7);
-      edgeVignette.addColorStop(0, 'rgba(0,0,0,0)');
-      edgeVignette.addColorStop(0.85, 'rgba(0,0,0,0.35)');
-      edgeVignette.addColorStop(1, 'rgba(0,0,0,0.88)');
-      skinCtx.fillStyle = edgeVignette;
-      skinCtx.fillRect(0, 0, W, H);
-
-      // 4. Glossy Specular Sheen (Clear coat reflection beam)
-      const sheenGrad = skinCtx.createLinearGradient(0, 0, W, H);
-      sheenGrad.addColorStop(0.18, 'rgba(255,255,255,0.25)');
-      sheenGrad.addColorStop(0.24, 'rgba(255,255,255,0.05)');
-      sheenGrad.addColorStop(0.42, 'transparent');
-      sheenGrad.addColorStop(0.72, 'rgba(255,255,255,0.1)');
-      sheenGrad.addColorStop(0.76, 'transparent');
-      skinCtx.fillStyle = sheenGrad;
-      skinCtx.fillRect(0, 0, W, H);
-
-      // 5. Anti-Screenshot High-Frequency Grating
-      skinCtx.lineWidth = 1;
+      // Apply clear-coat reflection and anti-screenshot sub-pixel lines
+      dippedCtx.lineWidth = 1;
       for (let y = 0; y < H; y += 4) {
-        skinCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)';
-        skinCtx.beginPath();
-        skinCtx.moveTo(0, y);
-        skinCtx.lineTo(W, y);
-        skinCtx.stroke();
+        dippedCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)';
+        dippedCtx.beginPath();
+        dippedCtx.moveTo(0, y);
+        dippedCtx.lineTo(W, y);
+        dippedCtx.stroke();
       }
 
-      // Show dipping animation
+      const phoneRig = document.getElementById('phoneRig');
       phoneRig.classList.remove('hidden');
-      phoneRig.classList.add('dip-active');
+      phoneRig.classList.add('animate-dip');
 
-      document.getElementById('stepBadge').innerText = 'Step 2: Film Transferred';
+      document.getElementById('stepBadge').innerText = 'Step 2 • Coated & Cured';
       document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full';
-      document.getElementById('stepTitle').innerText = 'Dipped & Transferred! ✨';
-      document.getElementById('stepDesc').innerText = 'Paint film was stretched, wrapped, and cured to the phone screen';
+      document.getElementById('stepTitle').innerText = 'Film Adhered to Display ✨';
+      document.getElementById('stepDesc').innerText = 'Colors transferred along the entry axis matching immersion fluid dynamics';
 
       document.getElementById('step1Controls').classList.add('hidden');
       document.getElementById('step2Controls').classList.remove('hidden');
     }
 
-    function downloadTransferredWallpaper() {
-      const skinCanvas = document.getElementById('transferredSkinCanvas');
-      skinCanvas.toBlob((blob) => {
+    function downloadWallpaper() {
+      dippedCanvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.download = `hydro-transferred-wallpaper-${Date.now()}.png`;
+        a.download = `hydro-adhered-1of1-${Date.now()}.png`;
         a.href = url;
         document.body.appendChild(a);
         a.click();
@@ -344,50 +319,21 @@
       }, 'image/png');
     }
 
-    function clearTank() {
-      drops = [];
-      initTank();
-    }
-
     function resetApp() {
-      drops = [];
       document.getElementById('phoneRig').classList.add('hidden');
-      document.getElementById('phoneRig').classList.remove('dip-active');
+      document.getElementById('phoneRig').classList.remove('animate-dip');
       document.getElementById('step2Controls').classList.add('hidden');
       document.getElementById('step1Controls').classList.remove('hidden');
 
-      document.getElementById('stepBadge').innerText = 'Step 1: Prep Fluid Tank';
+      document.getElementById('stepBadge').innerText = 'Step 1 • Surface Marbling';
       document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full';
-      document.getElementById('stepTitle').innerText = 'Drip & Swirl Colors';
-      document.getElementById('stepDesc').innerText = 'Tap to drip, drag to swirl paint on the water';
+      document.getElementById('stepTitle').innerText = 'Water Bath Chamber';
+      document.getElementById('stepDesc').innerText = 'Add colors and drag your finger to swirl ribbons across the surface';
 
-      initTank();
+      seedTank();
     }
 
-    // PWA Support
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBanner').classList.remove('hidden');
-    });
-
-    function installPWA() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        deferredPrompt = null;
-        document.getElementById('installBanner').classList.add('hidden');
-      });
-    }
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(() => {});
-      });
-    }
-
-    initTank();
+    seedTank();
   </script>
 </body>
 </html>
