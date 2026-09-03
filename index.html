@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Hyper-Realistic Hydro Dip 1-of-1 Studio</title>
+  <title>Hydro Dip 1-of-1 Ultra Studio</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#06b6d4" />
@@ -14,7 +14,6 @@
     body { touch-action: none; }
     canvas { touch-action: none; }
 
-    /* Oil Slick Gloss Lighting */
     .oil-sheen {
       background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 35%, transparent 70%),
                   linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 50%, rgba(0,0,0,0.4) 100%);
@@ -22,36 +21,36 @@
       pointer-events: none;
     }
 
-    /* 3D Immersion Rig Animation */
-    @keyframes deepSubmerge {
+    /* Hands Pulling Phone Out of Bath Animation */
+    @keyframes realisticDipAndExtract {
       0% {
-        transform: translateY(-130%) scale(0.8) rotateX(42deg) rotateY(-8deg);
+        transform: translateY(-130%) scale(0.8) rotateX(40deg);
         opacity: 0;
         filter: drop-shadow(0 40px 40px rgba(0,0,0,0.95));
       }
-      35% {
-        transform: translateY(-10%) scale(0.96) rotateX(16deg) rotateY(-3deg);
+      30% {
+        transform: translateY(0%) scale(0.96) rotateX(15deg);
         opacity: 1;
-        filter: drop-shadow(0 20px 30px rgba(6,182,212,0.3));
+        filter: drop-shadow(0 0 35px rgba(6,182,212,0.6));
       }
-      52% {
-        transform: translateY(2%) scale(1.02) rotateX(-4deg);
-        filter: drop-shadow(0 10px 40px rgba(0,0,0,0.9));
+      55% {
+        transform: translateY(8%) scale(1.02) rotateX(-8deg);
       }
-      72% {
-        transform: translateY(-1%) scale(0.99);
-      }
-      100% {
-        transform: translateY(0%) scale(1) rotateX(0deg) rotateY(0deg);
+      /* Pulling out hands with fresh glossy film */
+      80% {
+        transform: translateY(-3%) scale(1.01) rotateX(2deg);
         filter: drop-shadow(0 25px 50px rgba(0,0,0,0.95));
       }
+      100% {
+        transform: translateY(0%) scale(1) rotateX(0deg);
+        filter: drop-shadow(0 25px 45px rgba(0,0,0,0.95));
+      }
     }
 
-    .submerge-animation {
-      animation: deepSubmerge 2.6s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    .dip-extract-anim {
+      animation: realisticDipAndExtract 2.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
     }
 
-    /* Fluid Ripple Ring */
     @keyframes liquidRipple {
       0% { transform: scale(0.1); opacity: 0.9; border-width: 3px; }
       50% { opacity: 0.4; }
@@ -130,14 +129,14 @@
         </button>
       </div>
 
-      <button onclick="submergePhoneDevice()" class="w-full bg-gradient-to-r from-cyan-400 via-sky-500 to-rose-500 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-cyan-500/20 active:scale-95 transition-all">
-        Submerge & Coat Device 📱🌊
+      <button onclick="submergeAndExtractPhone()" class="w-full bg-gradient-to-r from-cyan-400 via-sky-500 to-rose-500 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-cyan-500/20 active:scale-95 transition-all">
+        Dip Hands & Pull Out Coated Phone 📱🌊
       </button>
     </div>
 
     <div id="phase3Controls" class="hidden space-y-2">
       <button onclick="exportDippedWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
-        Download 1-of-1 Marbled Wallpaper 📥
+        Download 1-of-1 Dipped Wallpaper 📥
       </button>
       <button onclick="resetEntireChamber()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs transition-colors">
         Fresh Tank (Clean Water) 🔄
@@ -164,7 +163,6 @@
     let combTool = 'stylus';
     let previousPoint = null;
 
-    // Advanced Eulerian-Inspired Ebru Fluid Drop
     class FluidMarblingCluster {
       constructor(cx, cy, radius, color, darkTone) {
         this.cx = cx;
@@ -174,7 +172,6 @@
         this.darkTone = darkTone;
         this.strands = [];
 
-        // 9 concentric organic rings with harmonic wave boundary
         const totalRings = 9;
         for (let r = 1; r <= totalRings; r++) {
           const vertices = [];
@@ -229,7 +226,6 @@
             const perpDist = Math.abs(pX * (-uY) + pY * uX);
             const pull = power * Math.exp(-perpDist / decay);
             
-            // Add subtle curl vortex displacement to mimic liquid turbulence
             const curl = Math.sin(perpDist * 0.05) * 8;
             v.x += uX * pull + (-uY * curl);
             v.y += uY * pull + (uX * curl);
@@ -263,7 +259,6 @@
     }
 
     function initLiquidSurface() {
-      // Abyssal deep liquid gradient base
       const grad = ctx.createRadialGradient(W/2, H/2, 150, W/2, H/2, W);
       grad.addColorStop(0, '#09101d');
       grad.addColorStop(1, '#020306');
@@ -380,7 +375,6 @@
           c.applyCombForce(previousPoint.x, previousPoint.y, current.x, current.y);
         }
       } else {
-        // Triple Tine Rake Comb: 3 parallel fluid comb lines
         const offsets = [-75, 0, 75];
         const dx = current.x - previousPoint.x;
         const dy = current.y - previousPoint.y;
@@ -409,19 +403,41 @@
       previousPoint = null;
     });
 
-    function submergePhoneDevice() {
+    // Realistic Immersion & Post-Dip Processing Engine
+    function submergeAndExtractPhone() {
       activePhase = 3;
       const phoneRig = document.getElementById('phoneRig');
       const skinCanvas = document.getElementById('phoneSkinCanvas');
       const skinCtx = skinCanvas.getContext('2d');
 
-      // Transfer full-resolution hydro skin onto phone body
+      // 1. Transfer core hydro marbling pattern
       skinCtx.drawImage(canvas, 0, 0);
 
-      // Micro-frequency anti-screenshot grating
+      // 2. Wrap curved screen bevels (darkens outer edges where paint rounds phone corners)
+      const edgeVignette = skinCtx.createRadialGradient(W/2, H/2, W * 0.42, W/2, H/2, W * 0.68);
+      edgeVignette.addColorStop(0, 'rgba(0,0,0,0)');
+      edgeVignette.addColorStop(0.85, 'rgba(0,0,0,0.4)');
+      edgeVignette.addColorStop(1, 'rgba(0,0,0,0.85)');
+      skinCtx.fillStyle = edgeVignette;
+      skinCtx.fillRect(0, 0, W, H);
+
+      // 3. Clear-Coat Glare & Specular Reflection Beam
+      const glossBeam = skinCtx.createLinearGradient(0, 0, W, H);
+      glossBeam.addColorStop(0.18, 'rgba(255,255,255,0.22)');
+      glossBeam.addColorStop(0.24, 'rgba(255,255,255,0.05)');
+      glossBeam.addColorStop(0.40, 'transparent');
+      glossBeam.addColorStop(0.68, 'rgba(255,255,255,0.08)');
+      glossBeam.addColorStop(0.72, 'transparent');
+      skinCtx.fillStyle = glossBeam;
+      skinCtx.fillRect(0, 0, W, H);
+
+      // 4. Paint Water Droplets (Scattered beaded condensation from extraction)
+      drawWaterCondensation(skinCtx);
+
+      // 5. Anti-Screenshot Sub-Pixel Grating
       skinCtx.lineWidth = 1;
       for (let y = 0; y < H; y += 4) {
-        skinCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)';
+        skinCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)';
         skinCtx.beginPath();
         skinCtx.moveTo(0, y);
         skinCtx.lineTo(W, y);
@@ -429,15 +445,47 @@
       }
 
       phoneRig.classList.remove('hidden');
-      phoneRig.classList.add('submerge-animation');
+      phoneRig.classList.add('dip-extract-anim');
 
-      document.getElementById('phaseTag').innerText = 'Phase 3 • Dipped & Bound';
+      document.getElementById('phaseTag').innerText = 'Phase 3 • Dipped, Extracted & Cured';
       document.getElementById('phaseTag').className = 'text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full';
-      document.getElementById('phaseHeading').innerText = 'Phone Immersed & Coated ✨';
-      document.getElementById('phaseDesc').innerText = 'The hydrographic pattern is permanently cured to your screen aspect ratio';
+      document.getElementById('phaseHeading').innerText = 'Extracted From Bath ✨';
+      document.getElementById('phaseDesc').innerText = 'Your phone emerged coated in fresh clear-coat fluid marbling';
 
       document.getElementById('phase2Controls').classList.add('hidden');
       document.getElementById('phase3Controls').classList.remove('hidden');
+    }
+
+    function drawWaterCondensation(tCtx) {
+      const dropCount = 45;
+      for (let i = 0; i < dropCount; i++) {
+        const x = Math.random() * W;
+        const y = Math.random() * H;
+        const r = 4 + Math.random() * 12;
+
+        // Droplet drop shadow
+        tCtx.beginPath();
+        tCtx.arc(x + 2, y + 3, r, 0, Math.PI * 2);
+        tCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        tCtx.fill();
+
+        // Droplet body
+        tCtx.beginPath();
+        tCtx.arc(x, y, r, 0, Math.PI * 2);
+        const dropGrad = tCtx.createRadialGradient(x - r*0.3, y - r*0.3, r*0.1, x, y, r);
+        dropGrad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+        dropGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.15)');
+        dropGrad.addColorStop(0.9, 'rgba(0, 0, 0, 0.25)');
+        dropGrad.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+        tCtx.fillStyle = dropGrad;
+        tCtx.fill();
+
+        // Specular highlight dot
+        tCtx.beginPath();
+        tCtx.arc(x - r*0.35, y - r*0.35, r*0.25, 0, Math.PI * 2);
+        tCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        tCtx.fill();
+      }
     }
 
     function exportDippedWallpaper() {
@@ -446,7 +494,7 @@
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.download = `hydro-marbled-1of1-${Date.now()}.png`;
+        a.download = `hydro-dipped-phone-${Date.now()}.png`;
         a.href = url;
         document.body.appendChild(a);
         a.click();
@@ -461,7 +509,7 @@
       inkDrops = [];
       activePhase = 1;
       document.getElementById('phoneRig').classList.add('hidden');
-      document.getElementById('phoneRig').classList.remove('submerge-animation');
+      document.getElementById('phoneRig').classList.remove('dip-extract-anim');
       document.getElementById('phase3Controls').classList.add('hidden');
       document.getElementById('phase1Controls').classList.remove('hidden');
 
@@ -470,4 +518,37 @@
       btn.className = "w-full bg-slate-800 text-slate-500 font-black py-3 rounded-xl text-xs tracking-wider transition-all cursor-not-allowed";
       btn.innerText = "Inject 4 Pigment Clusters (0/4)";
 
-      document.getElementById('phaseTag').innerText = 'Phase 1 • Chemical P
+      document.getElementById('phaseTag').innerText = 'Phase 1 • Chemical Pigment Injection';
+      document.getElementById('phaseTag').className = 'text-[10px] font-black uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-3 py-1 rounded-full';
+      document.getElementById('phaseHeading').innerText = 'Dispense Liquid Inks';
+      document.getElementById('phaseDesc').innerText = 'Tap bath to inject floating oil pigments that displace organically';
+
+      initLiquidSurface();
+    }
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.remove('hidden');
+    });
+
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        document.getElementById('installBanner').classList.add('hidden');
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    initLiquidSurface();
+  </script>
+</body>
+</html>
