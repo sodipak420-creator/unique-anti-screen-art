@@ -26,6 +26,7 @@
 
   <main class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
     
+    <!-- PWA Install Banner -->
     <div id="installBanner" class="hidden mb-4 p-3 bg-pink-500/10 border border-pink-500/30 rounded-2xl flex items-center justify-between">
       <div class="text-xs">
         <p class="font-bold text-pink-400">Install Hydro Studio</p>
@@ -36,23 +37,27 @@
       </button>
     </div>
 
+    <!-- Header -->
     <div class="text-center mb-3">
       <span id="stepBadge" class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
         Step 1 • Surface Marbling
       </span>
       <h1 id="stepTitle" class="text-xl font-black text-white mt-1">Water Bath Tank</h1>
-      <p id="stepDesc" class="text-[11px] text-slate-400">Drip every color you want. All colors will transfer to the phone.</p>
+      <p id="stepDesc" class="text-[11px] text-slate-400">Drip colors into the bath, then plunge the phone to extrude the film.</p>
     </div>
 
+    <!-- Tank & Phone Display -->
     <div class="relative w-full max-w-[280px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-3 aspect-[9/16]">
       <canvas id="tankCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
 
+      <!-- Dipped Phone Canvas -->
       <div id="phoneRig" class="hidden absolute inset-0 bg-black">
         <canvas id="phoneCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
         <div class="absolute inset-0 bg-gradient-to-tr from-white/15 via-transparent to-black/35 pointer-events-none"></div>
       </div>
     </div>
 
+    <!-- Step 1 Controls -->
     <div id="step1Controls" class="space-y-3">
       <div class="flex items-center justify-between bg-slate-950 p-2 rounded-xl border border-slate-800">
         <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Pigment:</span>
@@ -70,13 +75,14 @@
         <button onclick="seedTank()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-colors">
           Reset 🌊
         </button>
-        <button onclick="calculateAllColorsDip()" class="w-2/3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+        <button onclick="calculateContinuousExtrusion()" class="w-2/3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
           Dip Phone From Top 📱⬇️
         </button>
       </div>
       <p class="text-[10px] text-center text-slate-500">Tap anywhere to add rings • Drag to swirl</p>
     </div>
 
+    <!-- Step 2 Controls -->
     <div id="step2Controls" class="hidden space-y-2">
       <button onclick="downloadWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
         Download 1-of-1 Marbled Wallpaper 📥
@@ -190,7 +196,6 @@
     function seedTank() {
       drops = [];
       initTank();
-      // Contains all reference colors: Deep violet, lilac, cyan, gold, rose, and white
       const pal = ['#080414', '#3b0764', '#7e22ce', '#c084fc', '#06b6d4', '#f43f5e', '#fb7185', '#fbbf24', '#ffffff', '#0369a1'];
       const cx = W / 2;
       const cy = H / 2 - 20;
@@ -233,55 +238,51 @@
       lastPoint = null;
     });
 
-    // COMPLETE FLUID COVERAGE CALCULATION
-    // Traverses the entire radial spectrum of the tank so every single color is captured
-    function calculateAllColorsDip() {
+    // CONTINUOUS FLUID EXTRUSION
+    // Zero polar cuts, zero center seams, seamless ribbon compression
+    function calculateContinuousExtrusion() {
       const src = tankCtx.getImageData(0, 0, W, H).data;
       const destImg = phoneCtx.createImageData(W, H);
       const dest = destImg.data;
 
       const tankCenterX = W / 2;
       const tankCenterY = H / 2 - 20;
-      const maxRadius = Math.hypot(W / 2, H / 2) * 0.95;
 
       for (let y = 0; y < H; y++) {
-        const ny = y / H; // 0.0 (top edge) to 1.0 (bottom edge)
+        const ny = y / H; // 0.0 (top) to 1.0 (bottom)
 
-        // Maps vertical phone progress directly through the full radius of the tank:
-        // Ensures 100% of inner drops AND outer rings are swept onto the phone
-        const rBase = Math.pow(ny, 0.72) * maxRadius;
+        // Fluid shear waves running down the phone entry vector
+        const waveX = Math.sin(ny * 14.0) * 75.0 + Math.cos(ny * 28.0) * 35.0;
+        const waveY = Math.sin(ny * 9.0) * 40.0;
 
-        // Fluid shear waves: creates the wavy arm ribbons
-        const waveA = Math.sin(ny * 18.0) * 45.0;
-        const waveB = Math.cos(ny * 36.0) * 22.0;
-        const microCurl = Math.sin(ny * 90.0) * 8.0;
-        const radialDisplacement = waveA + waveB + microCurl;
+        // Radial scale expands as phone drives through concentric rings
+        const rExpansion = Math.pow(ny, 0.72) * 580.0;
 
         for (let x = 0; x < W; x++) {
-          const nx = (x - W / 2) / (W / 2); // -1.0 to +1.0 across the screen
+          const nx = (x - W / 2) / (W / 2); // -1.0 to 1.0
 
-          // Sweeps the angle across the tank based on lateral screen position:
-          const angle = (nx * 1.85) + Math.sin(ny * 8.0) * 0.35 + Math.PI * 0.5;
+          // Smooth Cartesian projection (no polar division, no mirror seam)
+          // Curved meniscus across the phone face:
+          const meniscus = (1.0 - nx * nx) * 60.0;
 
-          // Effective sampling radius from tank center
-          const r = Math.max(0, Math.min(maxRadius, rBase + radialDisplacement + (Math.abs(nx) * 120.0)));
+          // Coordinate in the tank:
+          let sX = Math.round(tankCenterX + (nx * (280.0 + rExpansion * 0.45)) + waveX);
+          let sY = Math.round(tankCenterY - 260.0 + (ny * 620.0) + waveY - meniscus);
 
-          let sX = Math.round(tankCenterX + Math.cos(angle) * r);
-          let sY = Math.round(tankCenterY + Math.sin(angle) * r);
-
+          // Boundary clamping
           sX = Math.max(0, Math.min(W - 1, sX));
           sY = Math.max(0, Math.min(H - 1, sY));
 
           const srcIdx = (sY * W + sX) * 4;
           const destIdx = (y * W + x) * 4;
 
-          // Liquid clear-coat gloss highlight
-          const sheen = Math.sin(ny * Math.PI * 3.0 + nx * 2.5) * 0.04;
-          const edgeFalloff = 1.0 - Math.pow(Math.abs(nx), 4.0) * 0.22;
+          // Edge bezel vignette & gloss highlight
+          const edgeFalloff = 1.0 - Math.pow(Math.abs(nx), 3.5) * 0.22;
+          const sheen = 1.0 + Math.sin(ny * Math.PI * 3.0 + nx * 2.0) * 0.04;
 
-          dest[destIdx]     = Math.min(255, src[srcIdx] * (1 + sheen) * edgeFalloff);
-          dest[destIdx + 1] = Math.min(255, src[srcIdx + 1] * (1 + sheen) * edgeFalloff);
-          dest[destIdx + 2] = Math.min(255, src[srcIdx + 2] * (1 + sheen) * edgeFalloff);
+          dest[destIdx]     = Math.min(255, src[srcIdx] * sheen * edgeFalloff);
+          dest[destIdx + 1] = Math.min(255, src[srcIdx + 1] * sheen * edgeFalloff);
+          dest[destIdx + 2] = Math.min(255, src[srcIdx + 2] * sheen * edgeFalloff);
           dest[destIdx + 3] = 255;
         }
       }
@@ -298,7 +299,6 @@
         phoneCtx.stroke();
       }
 
-      // Display dipped phone animation
       const phoneRig = document.getElementById('phoneRig');
       phoneRig.classList.remove('hidden');
       phoneRig.classList.add('animate-dip');
@@ -306,7 +306,7 @@
       document.getElementById('stepBadge').innerText = 'Step 2 • Coated & Transferred';
       document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full';
       document.getElementById('stepTitle').innerText = 'Film Adhered to Display ✨';
-      document.getElementById('stepDesc').innerText = 'Every single color layer transferred into fluid marbled ribbons';
+      document.getElementById('stepDesc').innerText = 'Continuous fluid ribbons extruded down the glass surface';
 
       document.getElementById('step1Controls').classList.add('hidden');
       document.getElementById('step2Controls').classList.remove('hidden');
@@ -337,7 +337,7 @@
       document.getElementById('stepBadge').innerText = 'Step 1 • Surface Marbling';
       document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full';
       document.getElementById('stepTitle').innerText = 'Water Bath Tank';
-      document.getElementById('stepDesc').innerText = 'Drip every color you want. All colors will transfer to the phone.';
+      document.getElementById('stepDesc').innerText = 'Drip colors into the bath, then plunge the phone to extrude the film.';
 
       seedTank();
     }
