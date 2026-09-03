@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Hydro Dip 1-of-1 Wallpaper Forge</title>
+  <title>Hydro Dip 1-of-1 Wallpaper Studio</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ec4899" />
@@ -13,91 +13,129 @@
   <style>
     body { touch-action: none; }
     canvas { touch-action: none; }
+
+    /* 3D Dipping Animation */
+    @keyframes dipInAndOut {
+      0% {
+        transform: translateY(-130%) rotateX(40deg) scale(0.85);
+        box-shadow: 0 40px 60px rgba(0,0,0,0.8);
+      }
+      45% {
+        transform: translateY(0%) rotateX(0deg) scale(1);
+        box-shadow: 0 0 40px rgba(236, 72, 153, 0.6);
+      }
+      65% {
+        transform: translateY(6%) rotateX(-10deg) scale(1.02);
+      }
+      100% {
+        transform: translateY(0%) rotateX(0deg) scale(1);
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.9);
+      }
+    }
+
+    .animate-dip {
+      animation: dipInAndOut 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-3 font-sans select-none overflow-x-hidden">
 
   <main class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
-    <!-- Header -->
+    
+    <!-- Step Header -->
     <div class="text-center mb-3">
-      <h1 class="text-2xl font-black text-pink-500 tracking-wider">Hydro Dip Studio</h1>
-      <p class="text-xs text-slate-400 mt-0.5">Swirl liquid paint filaments into an unrepeatable lock screen</p>
+      <span id="stepBadge" class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
+        Step 1: Color The Water
+      </span>
+      <h1 id="stepTitle" class="text-xl font-black text-white mt-1">Tap to Drip Liquid Paint</h1>
+      <p id="stepDesc" class="text-[11px] text-slate-400">Choose colors below, then tap inside the tank to drop paint</p>
     </div>
 
-    <!-- Live 9:16 Water Tank (Touch to Swirl) -->
-    <div class="relative w-full max-w-[270px] mx-auto rounded-3xl overflow-hidden border-2 border-pink-500/50 shadow-2xl bg-black mb-3 aspect-[9/16]">
-      <canvas id="marblingCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
-      <div id="gestureHint" class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 pointer-events-none p-4 text-center">
-        <span class="text-4xl animate-pulse mb-2">🎨</span>
-        <p class="text-sm font-black text-pink-400">Swirl & Drag in the Tank</p>
-        <p class="text-[11px] text-slate-200 mt-1">Stir the floating paint ribbons just like a real hydro dip bath</p>
+    <!-- The Hydro Tank / Phone Stage -->
+    <div class="relative w-full max-w-[280px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-3 aspect-[9/16] perspective-1000">
+      
+      <!-- Water Surface Canvas -->
+      <canvas id="waterCanvas" width="1080" height="1920" class="w-full h-full object-cover cursor-crosshair"></canvas>
+
+      <!-- 3D Phone Shell (Dipping Visual) -->
+      <div id="phoneRig" class="hidden absolute inset-4 rounded-[32px] border-[5px] border-slate-900 overflow-hidden bg-slate-950 shadow-2xl flex flex-col items-center justify-center">
+        <!-- Phone Camera Notch -->
+        <div class="absolute top-2 w-16 h-3.5 bg-black rounded-full z-20"></div>
+        <!-- Dipped Skin Texture Mirror -->
+        <canvas id="phoneSkinCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
+        <div class="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none z-10"></div>
       </div>
+
     </div>
 
-    <!-- Palette Picker -->
-    <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 mb-3 text-xs">
-      <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Paint Colors:</span>
-      <div class="flex gap-2">
-        <button onclick="changePalette('crimson')" title="Crimson Marble" class="w-6 h-6 rounded-full bg-gradient-to-tr from-red-600 via-pink-500 to-amber-300 ring-2 ring-white/20"></button>
-        <button onclick="changePalette('ocean')" title="Ocean Blue" class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-700 via-cyan-400 to-emerald-300 ring-2 ring-white/20"></button>
-        <button onclick="changePalette('cosmic')" title="Cosmic Purple" class="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-800 via-fuchsia-500 to-amber-400 ring-2 ring-white/20"></button>
-        <button onclick="changePalette('obsidian')" title="Obsidian Gold" class="w-6 h-6 rounded-full bg-gradient-to-tr from-zinc-900 via-amber-600 to-yellow-200 ring-2 ring-white/20"></button>
+    <!-- Step 1 Controls: Color Palette Dropper -->
+    <div id="step1Controls" class="space-y-3">
+      <div class="flex items-center justify-between bg-slate-950 p-2 rounded-xl border border-slate-800">
+        <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Selected Color:</span>
+        <div class="flex gap-2" id="paletteBar">
+          <button onclick="pickColor('#f43f5e')" class="w-7 h-7 rounded-full bg-rose-500 border-2 border-white ring-2 ring-pink-500 scale-110 color-btn"></button>
+          <button onclick="pickColor('#06b6d4')" class="w-7 h-7 rounded-full bg-cyan-500 border-2 border-transparent color-btn"></button>
+          <button onclick="pickColor('#fbbf24')" class="w-7 h-7 rounded-full bg-amber-400 border-2 border-transparent color-btn"></button>
+          <button onclick="pickColor('#a855f7')" class="w-7 h-7 rounded-full bg-purple-500 border-2 border-transparent color-btn"></button>
+          <button onclick="pickColor('#10b981')" class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-transparent color-btn"></button>
+          <button onclick="pickColor('#ffffff')" class="w-7 h-7 rounded-full bg-white border-2 border-transparent color-btn"></button>
+        </div>
       </div>
-    </div>
 
-    <!-- Controls -->
-    <div class="grid grid-cols-2 gap-2 mb-3">
-      <button onclick="addPaintDrop()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-xs rounded-xl text-slate-200">
-        + Drop Paint
-      </button>
-      <button onclick="resetBath()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-xs rounded-xl text-slate-200">
-        Clear Tank 🌊
+      <button id="toStep2Btn" onclick="goToStep2()" disabled class="w-full bg-slate-800 text-slate-500 font-black py-3 rounded-xl text-xs tracking-wider transition-all cursor-not-allowed">
+        Add At Least 3 Drops (0/3)
       </button>
     </div>
 
-    <!-- Action Button -->
-    <button onclick="downloadDip()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 font-black py-3 rounded-xl text-slate-950 text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
-      Dip & Download 1-of-1 Wallpaper 📥
-    </button>
+    <!-- Step 2 Controls: Swirl & Marble -->
+    <div id="step2Controls" class="hidden space-y-2">
+      <p class="text-[11px] text-center text-cyan-400 font-semibold animate-pulse">
+        Drag your finger across the tank to swirl the paint ribbons!
+      </p>
+      <button onclick="dipPhone()" class="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+        Dip Phone Into Water Bath 📱🌊
+      </button>
+    </div>
 
-    <p class="text-[10px] text-slate-500 text-center mt-3 leading-relaxed">
-      ✨ Fluid mechanics simulate mathematical non-repeatability. Once swirled, this exact marbling cannot be generated again.
-    </p>
+    <!-- Step 3 Controls: Download Finished 1-of-1 Lock Screen -->
+    <div id="step3Controls" class="hidden space-y-2">
+      <button onclick="downloadWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
+        Download My 1-of-1 Wallpaper (PNG) 📥
+      </button>
+      <button onclick="restartExperience()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2 rounded-xl text-xs transition-colors">
+        Clear Tank & Dip Again 🔄
+      </button>
+    </div>
 
     <!-- Adsterra Monetization Slot -->
     <div class="mt-6 pt-4 border-t border-slate-800 flex justify-center">
       <iframe srcdoc="<!DOCTYPE html><html><head></head><body style='margin:0;display:flex;justify-content:center;'><script type='text/javascript'>atOptions={'key':'45775fbece61c0f117b4d413d29f50b6','format':'iframe','height':50,'width':320,'params':{}};</script><script type='text/javascript' src='https://www.highrevenueformat.com/45775fbece61c0f117b4d413d29f50b6/invoke.js'></script></body></html>" width="320" height="50" style="border:none; overflow:hidden;" scrolling="no" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation"></iframe>
     </div>
+
   </main>
 
   <script>
-    const canvas = document.getElementById('marblingCanvas');
+    const canvas = document.getElementById('waterCanvas');
     const ctx = canvas.getContext('2d');
     const W = canvas.width;
     const H = canvas.height;
 
+    let currentStep = 1;
+    let selectedColor = '#f43f5e';
     let drops = [];
     let isSwirling = false;
     let lastPoint = null;
 
-    const palettes = {
-      crimson: ['#09090b', '#dc2626', '#f43f5e', '#fb7185', '#fbbf24', '#ffffff'],
-      ocean: ['#020617', '#0369a1', '#06b6d4', '#2dd4bf', '#a7f3d0', '#ffffff'],
-      cosmic: ['#0f051d', '#581c87', '#9333ea', '#c084fc', '#f472b6', '#fef08a'],
-      obsidian: ['#050505', '#1c1917', '#78350f', '#d97706', '#fbbf24', '#fef3c7']
-    };
-
-    let activeColors = palettes.crimson;
-
+    // Ebru Water Marbling Drop Model
     class Drop {
       constructor(x, y, r, color) {
         this.center = { x, y };
         this.r = r;
         this.color = color;
         this.vertices = [];
-        const total = 180;
-        for (let i = 0; i < total; i++) {
-          const angle = (i / total) * Math.PI * 2;
+        const count = 160;
+        for (let i = 0; i < count; i++) {
+          const angle = (i / count) * Math.PI * 2;
           this.vertices.push({
             x: x + Math.cos(angle) * r,
             y: y + Math.sin(angle) * r
@@ -126,15 +164,13 @@
         const uX = dx / mag;
         const uY = dy / mag;
 
-        const strength = 32;
-        const falloff = 45;
+        const strength = 36;
+        const falloff = 50;
 
         for (let v of this.vertices) {
           const pX = v.x - x0;
           const pY = v.y - y0;
-          const proj = pX * uX + pY * uY;
           const perp = Math.abs(pX * (-uY) + pY * uX);
-
           const pull = strength * Math.exp(-perp / falloff);
           v.x += uX * pull;
           v.y += uY * pull;
@@ -154,66 +190,78 @@
       }
     }
 
-    function addDrop(x, y, r, color) {
-      const newDrop = new Drop(x, y, r, color);
+    function initWater() {
+      ctx.fillStyle = '#090d16'; // Clean dark bath base
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function pickColor(hex) {
+      selectedColor = hex;
+      document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.classList.remove('scale-110', 'border-white', 'ring-2', 'ring-pink-500');
+        btn.classList.add('border-transparent');
+      });
+      event.target.classList.add('scale-110', 'border-white', 'ring-2', 'ring-pink-500');
+      event.target.classList.remove('border-transparent');
+    }
+
+    function addColorDrop(x, y) {
+      const radius = 90 + Math.random() * 60;
+      const newDrop = new Drop(x, y, radius, selectedColor);
       for (let d of drops) {
         d.marble(newDrop);
       }
       drops.push(newDrop);
-    }
+      renderBath();
 
-    function seedInitialBath() {
-      drops = [];
-      const numDrops = 38;
-      for (let i = 0; i < numDrops; i++) {
-        const x = W / 2 + (Math.random() - 0.5) * 400;
-        const y = H / 2 + (Math.random() - 0.5) * 800;
-        const r = 70 + Math.random() * 110;
-        const color = activeColors[i % activeColors.length];
-        addDrop(x, y, r, color);
+      if (currentStep === 1) {
+        const count = drops.length;
+        const btn = document.getElementById('toStep2Btn');
+        if (count >= 3) {
+          btn.disabled = false;
+          btn.className = "w-full bg-pink-500 hover:bg-pink-400 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider transition-all shadow-lg shadow-pink-500/20";
+          btn.innerText = `Water Ready! Go to Swirling Step ➔ (${count} Drops)`;
+        } else {
+          btn.innerText = `Add At Least 3 Drops (${count}/3)`;
+        }
       }
-      render();
     }
 
-    function render() {
-      ctx.fillStyle = activeColors[0];
+    function renderBath() {
+      ctx.fillStyle = '#090d16';
       ctx.fillRect(0, 0, W, H);
       for (let d of drops) {
         d.draw(ctx);
       }
     }
 
-    function addPaintDrop() {
-      const x = W / 2 + (Math.random() - 0.5) * 500;
-      const y = H / 2 + (Math.random() - 0.5) * 900;
-      const r = 90 + Math.random() * 100;
-      const color = activeColors[Math.floor(Math.random() * activeColors.length)];
-      addDrop(x, y, r, color);
-      render();
+    // Step Switching
+    function goToStep2() {
+      currentStep = 2;
+      document.getElementById('stepBadge').innerText = 'Step 2: Swirl & Marble';
+      document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 px-2.5 py-1 rounded-full';
+      document.getElementById('stepTitle').innerText = 'Stir The Liquid Surface';
+      document.getElementById('stepDesc').innerText = 'Drag across the water to comb and swirl the paint ribbons';
+      document.getElementById('step1Controls').classList.add('hidden');
+      document.getElementById('step2Controls').classList.remove('hidden');
     }
 
-    function changePalette(paletteName) {
-      activeColors = palettes[paletteName];
-      seedInitialBath();
-    }
-
-    function resetBath() {
-      seedInitialBath();
-    }
-
-    // Touch & Stylus Interaction (Tining & Swirling)
+    // Canvas Touch & Click Router
     canvas.addEventListener('pointerdown', (e) => {
-      isSwirling = true;
-      document.getElementById('gestureHint').classList.add('hidden');
       const rect = canvas.getBoundingClientRect();
-      lastPoint = {
-        x: (e.clientX - rect.left) * (W / rect.width),
-        y: (e.clientY - rect.top) * (H / rect.height)
-      };
+      const x = (e.clientX - rect.left) * (W / rect.width);
+      const y = (e.clientY - rect.top) * (H / rect.height);
+
+      if (currentStep === 1) {
+        addColorDrop(x, y);
+      } else if (currentStep === 2) {
+        isSwirling = true;
+        lastPoint = { x, y };
+      }
     });
 
     window.addEventListener('pointermove', (e) => {
-      if (!isSwirling || !lastPoint) return;
+      if (currentStep !== 2 || !isSwirling || !lastPoint) return;
       const rect = canvas.getBoundingClientRect();
       const currentPoint = {
         x: (e.clientX - rect.left) * (W / rect.width),
@@ -223,9 +271,8 @@
       for (let d of drops) {
         d.tine(lastPoint.x, lastPoint.y, currentPoint.x, currentPoint.y);
       }
-
       lastPoint = currentPoint;
-      render();
+      renderBath();
     });
 
     window.addEventListener('pointerup', () => {
@@ -233,12 +280,45 @@
       lastPoint = null;
     });
 
-    function downloadDip() {
-      canvas.toBlob((blob) => {
+    // Step 3: Animate Phone Dipping
+    function dipPhone() {
+      currentStep = 3;
+      const phoneRig = document.getElementById('phoneRig');
+      const skinCanvas = document.getElementById('phoneSkinCanvas');
+      const skinCtx = skinCanvas.getContext('2d');
+
+      // Copy exact current water marble to the phone body
+      skinCtx.drawImage(canvas, 0, 0);
+
+      // Add Sub-pixel Moiré frequency grid to phone screen
+      skinCtx.lineWidth = 1;
+      for (let y = 0; y < H; y += 4) {
+        skinCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+        skinCtx.beginPath();
+        skinCtx.moveTo(0, y);
+        skinCtx.lineTo(W, y);
+        skinCtx.stroke();
+      }
+
+      phoneRig.classList.remove('hidden');
+      phoneRig.classList.add('animate-dip');
+
+      document.getElementById('stepBadge').innerText = 'Step 3: 1-of-1 Hydro Dipped';
+      document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full';
+      document.getElementById('stepTitle').innerText = 'Dipped & Transferred! ✨';
+      document.getElementById('stepDesc').innerText = 'This fluid swirl now belongs solely to you. It cannot be remade.';
+
+      document.getElementById('step2Controls').classList.add('hidden');
+      document.getElementById('step3Controls').classList.remove('hidden');
+    }
+
+    function downloadWallpaper() {
+      const skinCanvas = document.getElementById('phoneSkinCanvas');
+      skinCanvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.download = `hydro-dip-${Date.now()}.png`;
+        a.download = `hydro-dip-1of1-${Date.now()}.png`;
         a.href = url;
         document.body.appendChild(a);
         a.click();
@@ -249,7 +329,28 @@
       }, 'image/png');
     }
 
-    seedInitialBath();
+    function restartExperience() {
+      drops = [];
+      currentStep = 1;
+      document.getElementById('phoneRig').classList.add('hidden');
+      document.getElementById('phoneRig').classList.remove('animate-dip');
+      document.getElementById('step3Controls').classList.add('hidden');
+      document.getElementById('step1Controls').classList.remove('hidden');
+
+      const btn = document.getElementById('toStep2Btn');
+      btn.disabled = true;
+      btn.className = "w-full bg-slate-800 text-slate-500 font-black py-3 rounded-xl text-xs tracking-wider transition-all cursor-not-allowed";
+      btn.innerText = "Add At Least 3 Drops (0/3)";
+
+      document.getElementById('stepBadge').innerText = 'Step 1: Color The Water';
+      document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full';
+      document.getElementById('stepTitle').innerText = 'Tap to Drip Liquid Paint';
+      document.getElementById('stepDesc').innerText = 'Choose colors below, then tap inside the tank to drop paint';
+
+      initWater();
+    }
+
+    initWater();
   </script>
 </body>
 </html>
