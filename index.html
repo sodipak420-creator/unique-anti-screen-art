@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GhostMesh - 1-of-1 Anti-Screenshot Wallpaper Engine</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#06b6d4" />
+  <meta name="mobile-web-app-capable" content="yes" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-3 font-sans">
+
+  <main class="w-full max-w-md bg-slate-900 rounded-2xl shadow-2xl p-5 border border-slate-800 mt-2 mb-8">
+    <!-- PWA Install Banner -->
+    <div id="installBanner" class="hidden mb-4 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl flex items-center justify-between">
+      <div class="text-xs">
+        <p class="font-bold text-cyan-400">Install GhostMesh</p>
+        <p class="text-slate-400">Mint custom screen shields offline</p>
+      </div>
+      <button onclick="installPWA()" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-slate-950 text-xs font-bold rounded-lg transition-all">
+        Install
+      </button>
+    </div>
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <h1 class="text-2xl font-black text-cyan-400 tracking-wider">GhostMesh Engine</h1>
+      <p class="text-xs text-slate-400 mt-0.5">1-of-1 Procedural Cryptographic Wallpaper with Moiré Distortion</p>
+    </div>
+
+    <!-- Live Canvas Visualizer (9:16 Aspect Ratio) -->
+    <div class="relative w-full max-w-[260px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-4 aspect-[9/16] flex items-center justify-center">
+      <canvas id="wallpaperCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
+      <div class="absolute bottom-3 text-[9px] font-mono uppercase tracking-widest text-white/50 pointer-events-none">
+        🔒 Encrypted Identity Seed
+      </div>
+    </div>
+
+    <!-- Seed Generator Inputs -->
+    <div class="space-y-3 text-xs">
+      <div>
+        <label class="block uppercase font-bold text-slate-400 mb-1">Your Identity Key / Secret Word</label>
+        <div class="flex gap-2">
+          <input id="userSeed" type="text" value="Nexus-X-77" oninput="renderWallpaper()" class="w-full px-3 py-2 bg-slate-950 rounded-lg border border-slate-700 font-mono text-cyan-300 focus:outline-none focus:border-cyan-500" placeholder="Type name, date, or phrase..." />
+          <button onclick="randomizeSeed()" class="px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 font-mono font-bold">
+            🎲
+          </button>
+        </div>
+      </div>
+
+      <!-- Pattern Style Selector -->
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="setStyle('moire')" id="btnMoire" class="py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition-all">
+          Anti-Lens Moiré
+        </button>
+        <button onclick="setStyle('cyber')" id="btnCyber" class="py-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold transition-all">
+          Vector Matrix
+        </button>
+        <button onclick="setStyle('rings')" id="btnRings" class="py-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold transition-all">
+          Harmonic Sine
+        </button>
+      </div>
+
+      <!-- Action Button -->
+      <button onclick="downloadWallpaper()" class="w-full mt-2 bg-cyan-500 hover:bg-cyan-400 font-black py-3 rounded-xl text-slate-950 text-sm tracking-wide shadow-lg shadow-cyan-500/20 transition-all active:scale-98">
+        Download 4K Unique Wallpaper 📥
+      </button>
+      
+      <p class="text-[10px] text-slate-500 text-center leading-relaxed">
+        ⚡ The 1-pixel micro-frequency lines trigger optical grating interference. When photographed by an external camera, it generates heavy Moiré rainbow bands.
+      </p>
+    </div>
+
+    <!-- Adsterra Monetization Slot -->
+    <div class="mt-6 pt-4 border-t border-slate-800 flex justify-center">
+      <iframe srcdoc="<!DOCTYPE html><html><head></head><body style='margin:0;display:flex;justify-content:center;'><script type='text/javascript'>atOptions={'key':'45775fbece61c0f117b4d413d29f50b6','format':'iframe','height':50,'width':320,'params':{}};</script><script type='text/javascript' src='https://www.highrevenueformat.com/45775fbece61c0f117b4d413d29f50b6/invoke.js'></script></body></html>" width="320" height="50" style="border:none; overflow:hidden;" scrolling="no" sandbox="allow-scripts allow-same-origin allow-popups allow-top-navigation"></iframe>
+    </div>
+  </main>
+
+  <script>
+    let currentStyle = 'moire';
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBanner').classList.remove('hidden');
+    });
+
+    function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        document.getElementById('installBanner').classList.add('hidden');
+      });
+    }
+
+    // String hashing algorithm to convert any text into deterministic integer seeds
+    function hashString(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash) || 12345;
+    }
+
+    function randomizeSeed() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let res = "SEED-";
+      for (let i = 0; i < 6; i++) {
+        res += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('userSeed').value = res;
+      renderWallpaper();
+    }
+
+    function setStyle(style) {
+      currentStyle = style;
+      ['moire', 'cyber', 'rings'].forEach(s => {
+        const btn = document.getElementById(`btn${s.charAt(0).toUpperCase() + s.slice(1)}`);
+        if (s === style) {
+          btn.className = "py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition-all shadow-md shadow-cyan-500/20";
+        } else {
+          btn.className = "py-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold transition-all";
+        }
+      });
+      renderWallpaper();
+    }
+
+    function renderWallpaper() {
+      const seedText = document.getElementById('userSeed').value.trim() || 'GhostMesh';
+      const seed = hashString(seedText);
+
+      const canvas = document.getElementById('wallpaperCanvas');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;   // 1080
+      const height = canvas.height; // 1920
+
+      // Reset canvas
+      ctx.fillStyle = '#030712';
+      ctx.fillRect(0, 0, width, height);
+
+      // Color seed calculation
+      const hue1 = (seed % 360);
+      const hue2 = ((seed * 7) % 360);
+
+      // Background ambient gradient
+      const bgGrad = ctx.createRadialGradient(width/2, height/2, 100, width/2, height/2, width);
+      bgGrad.addColorStop(0, `hsla(${hue1}, 80%, 15%, 0.8)`);
+      bgGrad.addColorStop(1, '#020617');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      if (currentStyle === 'moire') {
+        // High-density optical interference pattern
+        ctx.lineWidth = 1.2;
+        const spacing = 4 + (seed % 4);
+        const focalX = width / 2;
+        const focalY = 600 + (seed % 500);
+
+        for (let r = 10; r < height * 1.2; r += spacing) {
+          ctx.beginPath();
+          ctx.strokeStyle = (r % (spacing * 2) === 0) 
+            ? `hsla(${hue1}, 90%, 55%, 0.45)` 
+            : `hsla(${hue2}, 80%, 65%, 0.2)`;
+          ctx.arc(focalX, focalY, r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Cross-frequency diagonal raster lines
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        for (let y = 0; y < height; y += 3) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y + 2);
+          ctx.stroke();
+        }
+
+      } else if (currentStyle === 'cyber') {
+        // Procedural Vector Flow Field
+        const cols = 24;
+        const stepX = width / cols;
+        const stepY = height / 40;
+
+        ctx.lineWidth = 2;
+        for (let x = 0; x < width; x += stepX) {
+          for (let y = 0; y < height; y += stepY) {
+            const angle = ((x * 0.005) + (y * 0.005) + (seed * 0.001)) * Math.PI;
+            ctx.strokeStyle = `hsla(${((hue1 + (y * 0.1)) % 360)}, 85%, 60%, 0.35)`;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.cos(angle) * 35, y + Math.sin(angle) * 35);
+            ctx.stroke();
+          }
+        }
+
+      } else if (currentStyle === 'rings') {
+        // Harmonic Sine Ring Interferences
+        ctx.lineWidth = 1.5;
+        const count = 70;
+        for (let i = 0; i < count; i++) {
+          const radius = (i * 24) + (seed % 20);
+          ctx.strokeStyle = `hsla(${((hue2 + (i * 4)) % 360)}, 90%, 60%, 0.3)`;
+          ctx.beginPath();
+          for (let angle = 0; angle <= Math.PI * 2; angle += 0.05) {
+            const distortion = Math.sin(angle * 6 + i + (seed % 10)) * 25;
+            const px = (width / 2) + Math.cos(angle) * (radius + distortion);
+            const py = (height / 2) + Math.sin(angle) * (radius + distortion);
+            if (angle === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+      }
+
+      // Render Distinct Cryptographic Identity Stamp at Safe Lock Screen Area
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px monospace';
+      ctx.fillText(seedText.toUpperCase(), width / 2, height - 120);
+
+      ctx.font = '14px monospace';
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+      ctx.fillText(`HASH: 0x${seed.toString(16).toUpperCase()} • SECURE SCREEN SHIELD`, width / 2, height - 90);
+    }
+
+    function downloadWallpaper() {
+      const canvas = document.getElementById('wallpaperCanvas');
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          alert("Error generating wallpaper.");
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.download = `ghostmesh-${document.getElementById('userSeed').value.trim() || 'unique'}.png`;
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 300);
+      }, 'image/png');
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('SW Registered'))
+          .catch((err) => console.log('SW Error', err));
+      });
+    }
+
+    renderWallpaper();
+  </script>
+</body>
+</html>
