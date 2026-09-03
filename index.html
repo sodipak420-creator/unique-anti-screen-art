@@ -2,77 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GhostMesh - 1-of-1 Anti-Screenshot Wallpaper Engine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Hydro Dip 1-of-1 Wallpaper Forge</title>
 
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#06b6d4" />
+  <meta name="theme-color" content="#ec4899" />
   <meta name="mobile-web-app-capable" content="yes" />
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { touch-action: none; }
+    canvas { touch-action: none; }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-3 font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-3 font-sans select-none overflow-x-hidden">
 
-  <main class="w-full max-w-md bg-slate-900 rounded-2xl shadow-2xl p-5 border border-slate-800 mt-2 mb-8">
-    <!-- PWA Install Banner -->
-    <div id="installBanner" class="hidden mb-4 p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl flex items-center justify-between">
-      <div class="text-xs">
-        <p class="font-bold text-cyan-400">Install GhostMesh</p>
-        <p class="text-slate-400">Mint custom screen shields offline</p>
-      </div>
-      <button onclick="installPWA()" class="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-600 text-slate-950 text-xs font-bold rounded-lg transition-all">
-        Install
-      </button>
-    </div>
-
+  <main class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
     <!-- Header -->
-    <div class="text-center mb-4">
-      <h1 class="text-2xl font-black text-cyan-400 tracking-wider">GhostMesh Engine</h1>
-      <p class="text-xs text-slate-400 mt-0.5">1-of-1 Procedural Cryptographic Wallpaper with Moiré Distortion</p>
+    <div class="text-center mb-3">
+      <h1 class="text-2xl font-black text-pink-500 tracking-wider">Hydro Dip Studio</h1>
+      <p class="text-xs text-slate-400 mt-0.5">Swirl liquid paint filaments into an unrepeatable lock screen</p>
     </div>
 
-    <!-- Live Canvas Visualizer (9:16 Aspect Ratio) -->
-    <div class="relative w-full max-w-[260px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-4 aspect-[9/16] flex items-center justify-center">
-      <canvas id="wallpaperCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
-      <div class="absolute bottom-3 text-[9px] font-mono uppercase tracking-widest text-white/50 pointer-events-none">
-        🔒 Encrypted Identity Seed
+    <!-- Live 9:16 Water Tank (Touch to Swirl) -->
+    <div class="relative w-full max-w-[270px] mx-auto rounded-3xl overflow-hidden border-2 border-pink-500/50 shadow-2xl bg-black mb-3 aspect-[9/16]">
+      <canvas id="marblingCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
+      <div id="gestureHint" class="absolute inset-0 flex flex-col items-center justify-center bg-black/40 pointer-events-none p-4 text-center">
+        <span class="text-4xl animate-pulse mb-2">🎨</span>
+        <p class="text-sm font-black text-pink-400">Swirl & Drag in the Tank</p>
+        <p class="text-[11px] text-slate-200 mt-1">Stir the floating paint ribbons just like a real hydro dip bath</p>
       </div>
     </div>
 
-    <!-- Seed Generator Inputs -->
-    <div class="space-y-3 text-xs">
-      <div>
-        <label class="block uppercase font-bold text-slate-400 mb-1">Your Identity Key / Secret Word</label>
-        <div class="flex gap-2">
-          <input id="userSeed" type="text" value="Nexus-X-77" oninput="renderWallpaper()" class="w-full px-3 py-2 bg-slate-950 rounded-lg border border-slate-700 font-mono text-cyan-300 focus:outline-none focus:border-cyan-500" placeholder="Type name, date, or phrase..." />
-          <button onclick="randomizeSeed()" class="px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 font-mono font-bold">
-            🎲
-          </button>
-        </div>
+    <!-- Palette Picker -->
+    <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 mb-3 text-xs">
+      <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Paint Colors:</span>
+      <div class="flex gap-2">
+        <button onclick="changePalette('crimson')" title="Crimson Marble" class="w-6 h-6 rounded-full bg-gradient-to-tr from-red-600 via-pink-500 to-amber-300 ring-2 ring-white/20"></button>
+        <button onclick="changePalette('ocean')" title="Ocean Blue" class="w-6 h-6 rounded-full bg-gradient-to-tr from-blue-700 via-cyan-400 to-emerald-300 ring-2 ring-white/20"></button>
+        <button onclick="changePalette('cosmic')" title="Cosmic Purple" class="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-800 via-fuchsia-500 to-amber-400 ring-2 ring-white/20"></button>
+        <button onclick="changePalette('obsidian')" title="Obsidian Gold" class="w-6 h-6 rounded-full bg-gradient-to-tr from-zinc-900 via-amber-600 to-yellow-200 ring-2 ring-white/20"></button>
       </div>
+    </div>
 
-      <!-- Pattern Style Selector -->
-      <div class="grid grid-cols-3 gap-2">
-        <button onclick="setStyle('moire')" id="btnMoire" class="py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition-all">
-          Anti-Lens Moiré
-        </button>
-        <button onclick="setStyle('cyber')" id="btnCyber" class="py-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold transition-all">
-          Vector Matrix
-        </button>
-        <button onclick="setStyle('rings')" id="btnRings" class="py-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold transition-all">
-          Harmonic Sine
-        </button>
-      </div>
-
-      <!-- Action Button -->
-      <button onclick="downloadWallpaper()" class="w-full mt-2 bg-cyan-500 hover:bg-cyan-400 font-black py-3 rounded-xl text-slate-950 text-sm tracking-wide shadow-lg shadow-cyan-500/20 transition-all active:scale-98">
-        Download 4K Unique Wallpaper 📥
+    <!-- Controls -->
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <button onclick="addPaintDrop()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-xs rounded-xl text-slate-200">
+        + Drop Paint
       </button>
-      
-      <p class="text-[10px] text-slate-500 text-center leading-relaxed">
-        ⚡ The 1-pixel micro-frequency lines trigger optical grating interference. When photographed by an external camera, it generates heavy Moiré rainbow bands.
-      </p>
+      <button onclick="resetBath()" class="py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 font-bold text-xs rounded-xl text-slate-200">
+        Clear Tank 🌊
+      </button>
     </div>
+
+    <!-- Action Button -->
+    <button onclick="downloadDip()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 font-black py-3 rounded-xl text-slate-950 text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+      Dip & Download 1-of-1 Wallpaper 📥
+    </button>
+
+    <p class="text-[10px] text-slate-500 text-center mt-3 leading-relaxed">
+      ✨ Fluid mechanics simulate mathematical non-repeatability. Once swirled, this exact marbling cannot be generated again.
+    </p>
 
     <!-- Adsterra Monetization Slot -->
     <div class="mt-6 pt-4 border-t border-slate-800 flex justify-center">
@@ -81,166 +71,174 @@
   </main>
 
   <script>
-    let currentStyle = 'moire';
-    let deferredPrompt = null;
+    const canvas = document.getElementById('marblingCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installBanner').classList.remove('hidden');
+    let drops = [];
+    let isSwirling = false;
+    let lastPoint = null;
+
+    const palettes = {
+      crimson: ['#09090b', '#dc2626', '#f43f5e', '#fb7185', '#fbbf24', '#ffffff'],
+      ocean: ['#020617', '#0369a1', '#06b6d4', '#2dd4bf', '#a7f3d0', '#ffffff'],
+      cosmic: ['#0f051d', '#581c87', '#9333ea', '#c084fc', '#f472b6', '#fef08a'],
+      obsidian: ['#050505', '#1c1917', '#78350f', '#d97706', '#fbbf24', '#fef3c7']
+    };
+
+    let activeColors = palettes.crimson;
+
+    class Drop {
+      constructor(x, y, r, color) {
+        this.center = { x, y };
+        this.r = r;
+        this.color = color;
+        this.vertices = [];
+        const total = 180;
+        for (let i = 0; i < total; i++) {
+          const angle = (i / total) * Math.PI * 2;
+          this.vertices.push({
+            x: x + Math.cos(angle) * r,
+            y: y + Math.sin(angle) * r
+          });
+        }
+      }
+
+      marble(other) {
+        for (let v of this.vertices) {
+          const c = other.center;
+          const r = other.r;
+          const dx = v.x - c.x;
+          const dy = v.y - c.y;
+          const d = Math.hypot(dx, dy);
+          const factor = Math.sqrt(1 + (r * r) / (d * d || 0.001));
+          v.x = c.x + dx * factor;
+          v.y = c.y + dy * factor;
+        }
+      }
+
+      tine(x0, y0, x1, y1) {
+        const dx = x1 - x0;
+        const dy = y1 - y0;
+        const mag = Math.hypot(dx, dy);
+        if (mag === 0) return;
+        const uX = dx / mag;
+        const uY = dy / mag;
+
+        const strength = 32;
+        const falloff = 45;
+
+        for (let v of this.vertices) {
+          const pX = v.x - x0;
+          const pY = v.y - y0;
+          const proj = pX * uX + pY * uY;
+          const perp = Math.abs(pX * (-uY) + pY * uX);
+
+          const pull = strength * Math.exp(-perp / falloff);
+          v.x += uX * pull;
+          v.y += uY * pull;
+        }
+      }
+
+      draw(context) {
+        context.beginPath();
+        context.fillStyle = this.color;
+        for (let i = 0; i < this.vertices.length; i++) {
+          const v = this.vertices[i];
+          if (i === 0) context.moveTo(v.x, v.y);
+          else context.lineTo(v.x, v.y);
+        }
+        context.closePath();
+        context.fill();
+      }
+    }
+
+    function addDrop(x, y, r, color) {
+      const newDrop = new Drop(x, y, r, color);
+      for (let d of drops) {
+        d.marble(newDrop);
+      }
+      drops.push(newDrop);
+    }
+
+    function seedInitialBath() {
+      drops = [];
+      const numDrops = 38;
+      for (let i = 0; i < numDrops; i++) {
+        const x = W / 2 + (Math.random() - 0.5) * 400;
+        const y = H / 2 + (Math.random() - 0.5) * 800;
+        const r = 70 + Math.random() * 110;
+        const color = activeColors[i % activeColors.length];
+        addDrop(x, y, r, color);
+      }
+      render();
+    }
+
+    function render() {
+      ctx.fillStyle = activeColors[0];
+      ctx.fillRect(0, 0, W, H);
+      for (let d of drops) {
+        d.draw(ctx);
+      }
+    }
+
+    function addPaintDrop() {
+      const x = W / 2 + (Math.random() - 0.5) * 500;
+      const y = H / 2 + (Math.random() - 0.5) * 900;
+      const r = 90 + Math.random() * 100;
+      const color = activeColors[Math.floor(Math.random() * activeColors.length)];
+      addDrop(x, y, r, color);
+      render();
+    }
+
+    function changePalette(paletteName) {
+      activeColors = palettes[paletteName];
+      seedInitialBath();
+    }
+
+    function resetBath() {
+      seedInitialBath();
+    }
+
+    // Touch & Stylus Interaction (Tining & Swirling)
+    canvas.addEventListener('pointerdown', (e) => {
+      isSwirling = true;
+      document.getElementById('gestureHint').classList.add('hidden');
+      const rect = canvas.getBoundingClientRect();
+      lastPoint = {
+        x: (e.clientX - rect.left) * (W / rect.width),
+        y: (e.clientY - rect.top) * (H / rect.height)
+      };
     });
 
-    function installPWA() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        deferredPrompt = null;
-        document.getElementById('installBanner').classList.add('hidden');
-      });
-    }
+    window.addEventListener('pointermove', (e) => {
+      if (!isSwirling || !lastPoint) return;
+      const rect = canvas.getBoundingClientRect();
+      const currentPoint = {
+        x: (e.clientX - rect.left) * (W / rect.width),
+        y: (e.clientY - rect.top) * (H / rect.height)
+      };
 
-    // String hashing algorithm to convert any text into deterministic integer seeds
-    function hashString(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) - hash + str.charCodeAt(i);
-        hash |= 0;
-      }
-      return Math.abs(hash) || 12345;
-    }
-
-    function randomizeSeed() {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let res = "SEED-";
-      for (let i = 0; i < 6; i++) {
-        res += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      document.getElementById('userSeed').value = res;
-      renderWallpaper();
-    }
-
-    function setStyle(style) {
-      currentStyle = style;
-      ['moire', 'cyber', 'rings'].forEach(s => {
-        const btn = document.getElementById(`btn${s.charAt(0).toUpperCase() + s.slice(1)}`);
-        if (s === style) {
-          btn.className = "py-2 rounded-lg bg-cyan-500 text-slate-950 font-bold transition-all shadow-md shadow-cyan-500/20";
-        } else {
-          btn.className = "py-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white font-bold transition-all";
-        }
-      });
-      renderWallpaper();
-    }
-
-    function renderWallpaper() {
-      const seedText = document.getElementById('userSeed').value.trim() || 'GhostMesh';
-      const seed = hashString(seedText);
-
-      const canvas = document.getElementById('wallpaperCanvas');
-      const ctx = canvas.getContext('2d');
-      const width = canvas.width;   // 1080
-      const height = canvas.height; // 1920
-
-      // Reset canvas
-      ctx.fillStyle = '#030712';
-      ctx.fillRect(0, 0, width, height);
-
-      // Color seed calculation
-      const hue1 = (seed % 360);
-      const hue2 = ((seed * 7) % 360);
-
-      // Background ambient gradient
-      const bgGrad = ctx.createRadialGradient(width/2, height/2, 100, width/2, height/2, width);
-      bgGrad.addColorStop(0, `hsla(${hue1}, 80%, 15%, 0.8)`);
-      bgGrad.addColorStop(1, '#020617');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      if (currentStyle === 'moire') {
-        // High-density optical interference pattern
-        ctx.lineWidth = 1.2;
-        const spacing = 4 + (seed % 4);
-        const focalX = width / 2;
-        const focalY = 600 + (seed % 500);
-
-        for (let r = 10; r < height * 1.2; r += spacing) {
-          ctx.beginPath();
-          ctx.strokeStyle = (r % (spacing * 2) === 0) 
-            ? `hsla(${hue1}, 90%, 55%, 0.45)` 
-            : `hsla(${hue2}, 80%, 65%, 0.2)`;
-          ctx.arc(focalX, focalY, r, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        // Cross-frequency diagonal raster lines
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        for (let y = 0; y < height; y += 3) {
-          ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(width, y + 2);
-          ctx.stroke();
-        }
-
-      } else if (currentStyle === 'cyber') {
-        // Procedural Vector Flow Field
-        const cols = 24;
-        const stepX = width / cols;
-        const stepY = height / 40;
-
-        ctx.lineWidth = 2;
-        for (let x = 0; x < width; x += stepX) {
-          for (let y = 0; y < height; y += stepY) {
-            const angle = ((x * 0.005) + (y * 0.005) + (seed * 0.001)) * Math.PI;
-            ctx.strokeStyle = `hsla(${((hue1 + (y * 0.1)) % 360)}, 85%, 60%, 0.35)`;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + Math.cos(angle) * 35, y + Math.sin(angle) * 35);
-            ctx.stroke();
-          }
-        }
-
-      } else if (currentStyle === 'rings') {
-        // Harmonic Sine Ring Interferences
-        ctx.lineWidth = 1.5;
-        const count = 70;
-        for (let i = 0; i < count; i++) {
-          const radius = (i * 24) + (seed % 20);
-          ctx.strokeStyle = `hsla(${((hue2 + (i * 4)) % 360)}, 90%, 60%, 0.3)`;
-          ctx.beginPath();
-          for (let angle = 0; angle <= Math.PI * 2; angle += 0.05) {
-            const distortion = Math.sin(angle * 6 + i + (seed % 10)) * 25;
-            const px = (width / 2) + Math.cos(angle) * (radius + distortion);
-            const py = (height / 2) + Math.sin(angle) * (radius + distortion);
-            if (angle === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-          }
-          ctx.closePath();
-          ctx.stroke();
-        }
+      for (let d of drops) {
+        d.tine(lastPoint.x, lastPoint.y, currentPoint.x, currentPoint.y);
       }
 
-      // Render Distinct Cryptographic Identity Stamp at Safe Lock Screen Area
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 22px monospace';
-      ctx.fillText(seedText.toUpperCase(), width / 2, height - 120);
+      lastPoint = currentPoint;
+      render();
+    });
 
-      ctx.font = '14px monospace';
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
-      ctx.fillText(`HASH: 0x${seed.toString(16).toUpperCase()} • SECURE SCREEN SHIELD`, width / 2, height - 90);
-    }
+    window.addEventListener('pointerup', () => {
+      isSwirling = false;
+      lastPoint = null;
+    });
 
-    function downloadWallpaper() {
-      const canvas = document.getElementById('wallpaperCanvas');
+    function downloadDip() {
       canvas.toBlob((blob) => {
-        if (!blob) {
-          alert("Error generating wallpaper.");
-          return;
-        }
+        if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.download = `ghostmesh-${document.getElementById('userSeed').value.trim() || 'unique'}.png`;
+        a.download = `hydro-dip-${Date.now()}.png`;
         a.href = url;
         document.body.appendChild(a);
         a.click();
@@ -251,15 +249,7 @@
       }, 'image/png');
     }
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(() => console.log('SW Registered'))
-          .catch((err) => console.log('SW Error', err));
-      });
-    }
-
-    renderWallpaper();
+    seedInitialBath();
   </script>
 </body>
 </html>
