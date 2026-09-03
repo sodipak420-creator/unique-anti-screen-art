@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Real Hydro Dip Body Marbling</title>
+  <title>Hydro Dip Physical Extrusion Engine</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ec4899" />
@@ -13,12 +13,32 @@
   <style>
     body { touch-action: none; }
     canvas { touch-action: none; }
+
+    @keyframes plungeDip {
+      0% {
+        transform: translateY(-110%) scale(0.9);
+        opacity: 0.2;
+      }
+      50% {
+        transform: translateY(0%) scale(1);
+        opacity: 1;
+        box-shadow: 0 0 50px rgba(236, 72, 153, 0.7);
+      }
+      100% {
+        transform: translateY(0%) scale(1);
+      }
+    }
+
+    .animate-dip {
+      animation: plungeDip 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-3 font-sans select-none overflow-x-hidden">
 
   <main class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
     
+    <!-- PWA Install Banner -->
     <div id="installBanner" class="hidden mb-4 p-3 bg-pink-500/10 border border-pink-500/30 rounded-2xl flex items-center justify-between">
       <div class="text-xs">
         <p class="font-bold text-pink-400">Install Hydro Studio</p>
@@ -29,213 +49,316 @@
       </button>
     </div>
 
+    <!-- Header -->
     <div class="text-center mb-3">
-      <span class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
-        Ultra-Dense Ebru Marbling
+      <span id="stepBadge" class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
+        Step 1 • Color Bath
       </span>
-      <h1 class="text-xl font-black text-white mt-1">Real Hydrographic Dipping</h1>
-      <p class="text-[11px] text-slate-400">Drag to comb hundreds of ultra-thin paint filaments</p>
+      <h1 id="stepTitle" class="text-xl font-black text-white mt-1">Water Bath Tank</h1>
+      <p id="stepDesc" class="text-[11px] text-slate-400">Add colors in the tank. The marked contact zone dips down the screen.</p>
     </div>
 
+    <!-- Dual View Canvas Rig -->
     <div class="relative w-full max-w-[270px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-3 aspect-[9/16]">
-      <canvas id="marblingCanvas" width="1080" height="1920" class="w-full h-full object-cover cursor-crosshair"></canvas>
-    </div>
-
-    <div class="space-y-3 text-xs">
-      <div class="flex items-center justify-between bg-slate-950 p-2 rounded-xl border border-slate-800">
-        <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Palette:</span>
-        <div class="flex gap-2">
-          <button onclick="changeTheme('purpleArm')" title="Arm Photo Palette" class="w-7 h-7 rounded-full bg-gradient-to-tr from-purple-700 via-pink-500 to-amber-200 border-2 border-white ring-2 ring-pink-500 scale-110 pal-btn"></button>
-          <button onclick="changeTheme('uvNeon')" title="UV Neon Face" class="w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-400 via-emerald-400 to-amber-400 border-2 border-transparent pal-btn"></button>
-          <button onclick="changeTheme('classic')" title="Gif Tank Classic" class="w-7 h-7 rounded-full bg-gradient-to-tr from-rose-600 via-orange-500 to-neutral-900 border-2 border-transparent pal-btn"></button>
-          <button onclick="changeTheme('psychedelic')" title="Electric Rainbow" class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 via-emerald-400 to-fuchsia-500 border-2 border-transparent pal-btn"></button>
+      
+      <!-- Surface Water Tank Canvas -->
+      <canvas id="tankCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
+      
+      <!-- Interactive Contact Point Marker Overlay -->
+      <div id="contactGuide" class="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+        <div class="w-44 h-44 rounded-full border-2 border-dashed border-white/60 bg-pink-500/10 flex items-center justify-center">
+          <span class="text-[10px] font-mono text-white/90 bg-black/60 px-2 py-0.5 rounded">CONTACT ZONE</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-2">
-        <button onclick="reseedDenseTank()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3 rounded-xl text-xs transition-colors">
-          Re-Dip Rings 🌀
-        </button>
-        <button onclick="combRakeEffect()" class="w-full bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold py-3 rounded-xl text-xs transition-colors">
-          Auto Comb Rake 🔱
-        </button>
+      <!-- Result Canvas (Extruded Adhered Paint on Phone) -->
+      <div id="phoneRig" class="hidden absolute inset-0 bg-black">
+        <canvas id="phoneCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
+        <!-- Glass Specular Reflection Highlight -->
+        <div class="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-black/40 pointer-events-none"></div>
       </div>
 
-      <button onclick="downloadDippedArtwork()" class="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+    </div>
+
+    <!-- Step 1 Controls -->
+    <div id="step1Controls" class="space-y-3">
+      <div class="flex items-center justify-between bg-slate-950 p-2 rounded-xl border border-slate-800">
+        <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Pigment:</span>
+        <div class="flex gap-2" id="paletteBar">
+          <button onclick="pickColor('#f43f5e')" class="w-7 h-7 rounded-full bg-rose-500 border-2 border-white ring-2 ring-pink-500 scale-110 color-btn"></button>
+          <button onclick="pickColor('#06b6d4')" class="w-7 h-7 rounded-full bg-cyan-500 border-2 border-transparent color-btn"></button>
+          <button onclick="pickColor('#fbbf24')" class="w-7 h-7 rounded-full bg-amber-400 border-2 border-transparent color-btn"></button>
+          <button onclick="pickColor('#a855f7')" class="w-7 h-7 rounded-full bg-purple-500 border-2 border-transparent color-btn"></button>
+          <button onclick="pickColor('#10b981')" class="w-7 h-7 rounded-full bg-emerald-500 border-2 border-transparent color-btn"></button>
+          <button onclick="pickColor('#ffffff')" class="w-7 h-7 rounded-full bg-white border-2 border-transparent color-btn"></button>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="resetBath()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-colors">
+          Clear 🌊
+        </button>
+        <button onclick="calculateImmersionExtrusion()" class="w-2/3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+          Dip Phone From Top 📱⬇️
+        </button>
+      </div>
+      <p class="text-[10px] text-center text-slate-500">Tap to drip inside or around contact circle • Drag to swirl</p>
+    </div>
+
+    <!-- Step 2 Controls -->
+    <div id="step2Controls" class="hidden space-y-2">
+      <button onclick="downloadWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
         Download 1-of-1 Marbled Wallpaper 📥
       </button>
-
-      <p class="text-[10px] text-center text-slate-500">
-        👆 Drag your finger across the canvas to comb the tight color ribbons
-      </p>
+      <button onclick="clearAndRedip()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl text-xs transition-colors">
+        Dip Another Wallpaper 🔄
+      </button>
     </div>
 
   </main>
 
   <script>
-    const canvas = document.getElementById('marblingCanvas');
-    const ctx = canvas.getContext('2d');
+    const tankCanvas = document.getElementById('tankCanvas');
+    const tankCtx = tankCanvas.getContext('2d');
+    const phoneCanvas = document.getElementById('phoneCanvas');
+    const phoneCtx = phoneCanvas.getContext('2d');
     const W = 1080;
     const H = 1920;
 
-    // Palettes taken directly from your real reference images
-    const themes = {
-      purpleArm: ['#120826', '#3b0764', '#7e22ce', '#c084fc', '#f43f5e', '#fb7185', '#38bdf8', '#fef08a', '#ffffff', '#0f172a'],
-      uvNeon: ['#030712', '#06b6d4', '#22d3ee', '#10b981', '#34d399', '#f59e0b', '#fbbf24', '#0284c7', '#022c22'],
-      classic: ['#000000', '#dc2626', '#b91c1c', '#ea580c', '#fb923c', '#fef08a', '#ffffff', '#18181b'],
-      psychedelic: ['#030712', '#2563eb', '#06b6d4', '#10b981', '#a855f7', '#ec4899', '#facc15', '#ffffff']
-    };
+    let currentColor = '#f43f5e';
+    let drops = [];
+    let isSwirling = false;
+    let lastPoint = null;
 
-    let activeColors = themes.purpleArm;
-    let rings = [];
-    let isDragging = false;
-    let prevPoint = null;
-
-    class FilamentRing {
+    class FluidDrop {
       constructor(cx, cy, r, color) {
         this.cx = cx;
         this.cy = cy;
         this.r = r;
         this.color = color;
-        this.points = [];
-        const numPoints = 160;
-        for (let i = 0; i < numPoints; i++) {
-          const a = (i / numPoints) * Math.PI * 2;
-          this.points.push({
-            x: cx + Math.cos(a) * r,
-            y: cy + Math.sin(a) * r
-          });
+        this.vertices = [];
+        const pts = 120;
+        for (let i = 0; i < pts; i++) {
+          const a = (i / pts) * Math.PI * 2;
+          this.vertices.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
         }
       }
 
-      tine(x0, y0, x1, y1, power = 45, falloff = 90) {
+      displace(other) {
+        for (let v of this.vertices) {
+          const dx = v.x - other.cx;
+          const dy = v.y - other.cy;
+          const d = Math.hypot(dx, dy);
+          const factor = Math.sqrt(1 + (other.r * other.r) / (d * d || 0.001));
+          v.x = other.cx + dx * factor;
+          v.y = other.cy + dy * factor;
+        }
+      }
+
+      tine(x0, y0, x1, y1) {
         const dx = x1 - x0;
         const dy = y1 - y0;
-        const dist = Math.hypot(dx, dy);
-        if (dist === 0) return;
-        const ux = dx / dist;
-        const uy = dy / dist;
+        const mag = Math.hypot(dx, dy);
+        if (mag === 0) return;
+        const uX = dx / mag;
+        const uY = dy / mag;
+        const power = 40;
+        const decay = 75;
 
-        for (let p of this.points) {
-          const px = p.x - x0;
-          const py = p.y - y0;
-          const perp = Math.abs(px * (-uy) + py * ux);
-          const pull = power * Math.exp(-perp / falloff);
-          p.x += ux * pull;
-          p.y += uy * pull;
+        for (let v of this.vertices) {
+          const pX = v.x - x0;
+          const pY = v.y - y0;
+          const perp = Math.abs(pX * (-uY) + pY * uX);
+          const pull = power * Math.exp(-perp / decay);
+          v.x += uX * pull;
+          v.y += uY * pull;
         }
       }
 
       draw(c) {
         c.beginPath();
-        c.strokeStyle = this.color;
-        c.lineWidth = 3.5; // Thin tightly-packed lines like the photo
-        for (let i = 0; i < this.points.length; i++) {
-          const p = this.points[i];
-          if (i === 0) c.moveTo(p.x, p.y);
-          else c.lineTo(p.x, p.y);
+        c.fillStyle = this.color;
+        for (let i = 0; i < this.vertices.length; i++) {
+          const v = this.vertices[i];
+          if (i === 0) c.moveTo(v.x, v.y);
+          else c.lineTo(v.x, v.y);
         }
         c.closePath();
-        c.stroke();
+        c.fill();
       }
     }
 
-    function changeTheme(key) {
-      activeColors = themes[key];
-      document.querySelectorAll('.pal-btn').forEach(b => {
+    function initTank() {
+      tankCtx.fillStyle = '#060913';
+      tankCtx.fillRect(0, 0, W, H);
+    }
+
+    function pickColor(hex) {
+      currentColor = hex;
+      document.querySelectorAll('.color-btn').forEach(b => {
         b.classList.remove('scale-110', 'border-white', 'ring-2', 'ring-pink-500');
         b.classList.add('border-transparent');
       });
       event.target.classList.add('scale-110', 'border-white', 'ring-2', 'ring-pink-500');
       event.target.classList.remove('border-transparent');
-      reseedDenseTank();
     }
 
-    // Creates 250+ razor-thin concentric rings (the authentic Ebru water setup)
-    function reseedDenseTank() {
-      rings = [];
-      ctx.fillStyle = activeColors[0];
-      ctx.fillRect(0, 0, W, H);
+    function addColorDrop(x, y) {
+      const r = 110 + Math.random() * 70;
+      const d = new FluidDrop(x, y, r, currentColor);
+      for (let existing of drops) existing.displace(d);
+      drops.push(d);
+      renderTank();
+    }
 
+    function renderTank() {
+      initTank();
+      for (let d of drops) d.draw(tankCtx);
+    }
+
+    // Default seed in and around contact circle
+    function resetBath() {
+      drops = [];
+      initTank();
+      const pal = ['#3b0764', '#7e22ce', '#c084fc', '#f43f5e', '#fb7185', '#fbbf24', '#ffffff', '#0f172a'];
       const cx = W / 2;
-      const cy = H / 2;
-      const totalRings = 260; // Dense filaments like real marbling
-      const spacing = 4.5;
-
-      for (let i = 1; i <= totalRings; i++) {
-        const r = i * spacing;
-        const color = activeColors[i % activeColors.length];
-        rings.push(new FilamentRing(cx, cy, r, color));
+      const cy = H / 2 - 40; // Contact circle center
+      for (let i = 0; i < 18; i++) {
+        const x = cx + (Math.random() - 0.5) * 240;
+        const y = cy + (Math.random() - 0.5) * 240;
+        const r = 100 + Math.random() * 90;
+        const d = new FluidDrop(x, y, r, pal[i % pal.length]);
+        for (let existing of drops) existing.displace(d);
+        drops.push(d);
       }
-
-      // Initial natural liquid stretch
-      combRakeEffect();
+      renderTank();
     }
 
-    function renderScene() {
-      ctx.fillStyle = activeColors[0];
-      ctx.fillRect(0, 0, W, H);
-      for (let ring of rings) {
-        ring.draw(ctx);
-      }
-    }
-
-    // Simulates dragging the multi-tooth rake comb through the water
-    function combRakeEffect() {
-      const teeth = 7;
-      const step = W / teeth;
-      for (let i = 0; i <= teeth; i++) {
-        const startX = i * step + (Math.random() * 40 - 20);
-        const endX = startX + (Math.random() * 80 - 40);
-        const dir = (i % 2 === 0) ? 1 : -1;
-        
-        const y0 = (dir === 1) ? -100 : H + 100;
-        const y1 = (dir === 1) ? H + 100 : -100;
-
-        for (let ring of rings) {
-          ring.tine(startX, y0, endX, y1, 55, 110);
-        }
-      }
-      renderScene();
-    }
-
-    // Manual finger touch combing
-    canvas.addEventListener('pointerdown', (e) => {
-      isDragging = true;
-      const rect = canvas.getBoundingClientRect();
-      prevPoint = {
-        x: (e.clientX - rect.left) * (W / rect.width),
-        y: (e.clientY - rect.top) * (H / rect.height)
-      };
+    tankCanvas.addEventListener('pointerdown', (e) => {
+      const rect = tankCanvas.getBoundingClientRect();
+      const x = (e.clientX - rect.left) * (W / rect.width);
+      const y = (e.clientY - rect.top) * (H / rect.height);
+      isSwirling = true;
+      lastPoint = { x, y };
+      addColorDrop(x, y);
     });
 
     window.addEventListener('pointermove', (e) => {
-      if (!isDragging || !prevPoint) return;
-      const rect = canvas.getBoundingClientRect();
+      if (!isSwirling || !lastPoint) return;
+      const rect = tankCanvas.getBoundingClientRect();
       const cur = {
         x: (e.clientX - rect.left) * (W / rect.width),
         y: (e.clientY - rect.top) * (H / rect.height)
       };
 
-      for (let ring of rings) {
-        ring.tine(prevPoint.x, prevPoint.y, cur.x, cur.y, 45, 95);
-      }
-
-      prevPoint = cur;
-      renderScene();
+      for (let d of drops) d.tine(lastPoint.x, lastPoint.y, cur.x, cur.y);
+      lastPoint = cur;
+      renderTank();
     });
 
     window.addEventListener('pointerup', () => {
-      isDragging = false;
-      prevPoint = null;
+      isSwirling = false;
+      lastPoint = null;
     });
 
-    function downloadDippedArtwork() {
-      canvas.toBlob((blob) => {
+    // PHYSICAL EXTENSION ENGINE:
+    // Samples the colors inside your red contact circle and stretches them millimeter-by-millimeter from top to bottom
+    function calculateImmersionExtrusion() {
+      const srcPixels = tankCtx.getImageData(0, 0, W, H).data;
+      const destImage = phoneCtx.createImageData(W, H);
+      const dest = destImage.data;
+
+      // Center and radius of your contact circle
+      const contactCx = W / 2;
+      const contactCy = H / 2 - 40;
+      const contactR = 190;
+
+      // Build 1D contact slice across the contact circle
+      const sliceLength = contactR * 2;
+      const contactColors = [];
+
+      for (let i = 0; i < sliceLength; i++) {
+        const sampleX = Math.round((contactCx - contactR) + i);
+        const sampleY = Math.round(contactCy + Math.sin((i / sliceLength) * Math.PI) * 20); // slightly curved meniscus
+
+        const idx = (sampleY * W + sampleX) * 4;
+        contactColors.push([
+          srcPixels[idx] || 0,
+          srcPixels[idx + 1] || 0,
+          srcPixels[idx + 2] || 0
+        ]);
+      }
+
+      // Extrude from top (y=0) to bottom (y=1920) across all screen millimeters
+      for (let y = 0; y < H; y++) {
+        const progress = y / H; // 0.0 (top of phone) to 1.0 (bottom of phone)
+
+        // Fluid wave dynamics:
+        // - Lateral fluid drift as the phone pushes through water
+        // - High frequency shear ripples that turn thick blocks into razor-thin bands (like the hand photo)
+        const wave1 = Math.sin(progress * 12.0) * 85;
+        const wave2 = Math.cos(progress * 26.0) * 35;
+        const microShear = Math.sin(progress * 75.0) * 14;
+        const totalDisplacement = wave1 + wave2 + microShear;
+
+        for (let x = 0; x < W; x++) {
+          // Map x-coordinate across the contact circle
+          let normX = (x + totalDisplacement) / W;
+
+          // Compression toward edges as fluid flows around phone frame
+          normX = 0.5 + (normX - 0.5) * (0.85 + progress * 0.3);
+
+          // Bound and convert to slice index
+          let sliceIdx = Math.floor(normX * (sliceLength - 1));
+          sliceIdx = Math.max(0, Math.min(sliceLength - 1, sliceIdx));
+
+          const col = contactColors[sliceIdx];
+
+          // Add liquid clear-coat lighting gradient
+          const rimLight = Math.pow(Math.abs(x - W/2) / (W/2), 2.5) * 0.2;
+          const sheen = Math.sin(progress * Math.PI * 2 + (x / W) * 3) * 0.05;
+
+          const destIdx = (y * W + x) * 4;
+          dest[destIdx]     = Math.min(255, col[0] * (1 + sheen) + rimLight * 255);
+          dest[destIdx + 1] = Math.min(255, col[1] * (1 + sheen) + rimLight * 255);
+          dest[destIdx + 2] = Math.min(255, col[2] * (1 + sheen) + rimLight * 255);
+          dest[destIdx + 3] = 255;
+        }
+      }
+
+      phoneCtx.putImageData(destImage, 0, 0);
+
+      // Add sub-pixel anti-screenshot barrier
+      phoneCtx.lineWidth = 1;
+      for (let y = 0; y < H; y += 4) {
+        phoneCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)';
+        phoneCtx.beginPath();
+        phoneCtx.moveTo(0, y);
+        phoneCtx.lineTo(W, y);
+        phoneCtx.stroke();
+      }
+
+      // Reveal phone view with plunge animation
+      document.getElementById('contactGuide').classList.add('hidden');
+      const phoneRig = document.getElementById('phoneRig');
+      phoneRig.classList.remove('hidden');
+      phoneRig.classList.add('animate-dip');
+
+      document.getElementById('stepBadge').innerText = 'Step 2 • Adhered 1-of-1';
+      document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full';
+      document.getElementById('stepTitle').innerText = 'Film Adhered From Top ✨';
+      document.getElementById('stepDesc').innerText = 'Colors from contact zone extruded into dense flowing striations';
+
+      document.getElementById('step1Controls').classList.add('hidden');
+      document.getElementById('step2Controls').classList.remove('hidden');
+    }
+
+    function downloadWallpaper() {
+      phoneCanvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.download = `hydro-dipped-1of1-${Date.now()}.png`;
+        a.download = `hydro-marbled-1of1-${Date.now()}.png`;
         a.href = url;
         document.body.appendChild(a);
         a.click();
@@ -246,7 +369,21 @@
       }, 'image/png');
     }
 
-    // PWA Support
+    function clearAndRedip() {
+      document.getElementById('phoneRig').classList.add('hidden');
+      document.getElementById('phoneRig').classList.remove('animate-dip');
+      document.getElementById('contactGuide').classList.remove('hidden');
+      document.getElementById('step2Controls').classList.add('hidden');
+      document.getElementById('step1Controls').classList.remove('hidden');
+
+      document.getElementById('stepBadge').innerText = 'Step 1 • Color Bath';
+      document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full';
+      document.getElementById('stepTitle').innerText = 'Water Bath Tank';
+      document.getElementById('stepDesc').innerText = 'Add colors in the tank. The marked contact zone dips down the screen.';
+
+      resetBath();
+    }
+
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -269,7 +406,7 @@
       });
     }
 
-    reseedDenseTank();
+    resetBath();
   </script>
 </body>
 </html>
