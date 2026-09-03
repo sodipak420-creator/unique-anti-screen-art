@@ -19,14 +19,13 @@
       50% { transform: translateY(0%) scale(1); opacity: 1; box-shadow: 0 0 50px rgba(236,72,153,0.7); }
       100% { transform: translateY(0%) scale(1); }
     }
-    .animate-dip { animation: plungeAnim 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-dip { animation: plungeAnim 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center p-3 font-sans select-none overflow-x-hidden">
 
   <main class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
     
-    <!-- PWA Install Banner -->
     <div id="installBanner" class="hidden mb-4 p-3 bg-pink-500/10 border border-pink-500/30 rounded-2xl flex items-center justify-between">
       <div class="text-xs">
         <p class="font-bold text-pink-400">Install Hydro Studio</p>
@@ -37,7 +36,6 @@
       </button>
     </div>
 
-    <!-- Header -->
     <div class="text-center mb-3">
       <span id="stepBadge" class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
         Step 1 • Fluid Surface
@@ -46,22 +44,19 @@
       <p id="stepDesc" class="text-[11px] text-slate-400">Tap to drip, drag to swirl paint. Plunge phone to adhere ribbons.</p>
     </div>
 
-    <!-- 9:16 Tank & Phone Display -->
     <div class="relative w-full max-w-[280px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-3 aspect-[9/16]">
       <canvas id="tankCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
 
-      <!-- Dipped Phone Skin Overlay -->
       <div id="phoneRig" class="hidden absolute inset-0 bg-black">
         <canvas id="phoneCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
-        <div class="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-black/40 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-tr from-white/15 via-transparent to-black/35 pointer-events-none"></div>
       </div>
     </div>
 
-    <!-- Step 1 Controls -->
     <div id="step1Controls" class="space-y-3">
       <div class="flex items-center justify-between bg-slate-950 p-2 rounded-xl border border-slate-800">
         <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Pigment:</span>
-        <div class="flex gap-2">
+        <div class="flex gap-2" id="paletteBar">
           <button onclick="pickColor('#f43f5e')" class="w-7 h-7 rounded-full bg-rose-500 border-2 border-white ring-2 ring-pink-500 scale-110 color-btn"></button>
           <button onclick="pickColor('#06b6d4')" class="w-7 h-7 rounded-full bg-cyan-500 border-2 border-transparent color-btn"></button>
           <button onclick="pickColor('#fbbf24')" class="w-7 h-7 rounded-full bg-amber-400 border-2 border-transparent color-btn"></button>
@@ -82,7 +77,6 @@
       <p class="text-[10px] text-center text-slate-500">Tap to drip • Drag to swirl the paint rings</p>
     </div>
 
-    <!-- Step 2 Controls -->
     <div id="step2Controls" class="hidden space-y-2">
       <button onclick="downloadWallpaper()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
         Download 1-of-1 Marbled Wallpaper 📥
@@ -114,7 +108,7 @@
         this.r = r;
         this.color = color;
         this.vertices = [];
-        const pts = 140;
+        const pts = 160;
         for (let i = 0; i < pts; i++) {
           const a = (i / pts) * Math.PI * 2;
           this.vertices.push({ x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r });
@@ -139,8 +133,8 @@
         if (mag === 0) return;
         const uX = dx / mag;
         const uY = dy / mag;
-        const power = 42;
-        const decay = 85;
+        const power = 48;
+        const decay = 90;
 
         for (let v of this.vertices) {
           const pX = v.x - x0;
@@ -196,14 +190,13 @@
     function seedTank() {
       drops = [];
       initTank();
-      // Balanced palette based on reference photos
       const pal = ['#0f051d', '#3b0764', '#7e22ce', '#c084fc', '#f43f5e', '#fb7185', '#fbbf24', '#ffffff', '#0284c7'];
       const cx = W / 2;
       const cy = H / 2 - 30;
 
-      for (let i = 0; i < 24; i++) {
-        const x = cx + (Math.random() - 0.5) * 200;
-        const y = cy + (Math.random() - 0.5) * 200;
+      for (let i = 0; i < 26; i++) {
+        const x = cx + (Math.random() - 0.5) * 160;
+        const y = cy + (Math.random() - 0.5) * 160;
         const r = 90 + Math.random() * 85;
         const d = new FluidDrop(x, y, r, pal[i % pal.length]);
         for (let existing of drops) existing.displace(d);
@@ -239,8 +232,8 @@
       lastPoint = null;
     });
 
-    // HYDRO DIPPING IMMERSION WARPING
-    // Maps the 2D surface rings into extruded vertical bands, matching real body marbling
+    // TRUE POLAR STREAMLINE FLUID ADHESION
+    // Completely eliminates the center seam and jagged stairs
     function plungeAndWrapPhone() {
       const src = tankCtx.getImageData(0, 0, W, H).data;
       const destImg = phoneCtx.createImageData(W, H);
@@ -249,54 +242,62 @@
       const tankCenterX = W / 2;
       const tankCenterY = H / 2 - 30;
 
-      for (let y = 0; y < H; y++) {
-        const v = y / H; // 0.0 (top) to 1.0 (bottom)
+      // The point on the water where the top of the phone first punctures the surface
+      const vortexX = W * 0.46;
+      const vortexY = H * 0.18;
 
-        // Fluid flow dynamics along the dip axis:
-        // - High frequency shear creates thousands of fine bands
-        // - Lateral flow stretches concentric circles into vertical ribbons
-        const shearWave1 = Math.sin(v * 16.0) * 90;
-        const shearWave2 = Math.cos(v * 32.0) * 45;
-        const microJitter = Math.sin(v * 80.0) * 15;
-        const lateralOffset = shearWave1 + shearWave2 + microJitter;
+      for (let y = 0; y < H; y++) {
+        const ny = y / H; // 0.0 to 1.0 down the phone
+
+        // Progressive fluid shear (smooth sinusoidal drag down the entry path)
+        const shearX = Math.sin(ny * 9.5) * 65.0 + Math.cos(ny * 19.0) * 25.0;
+        const shearY = Math.cos(ny * 8.0) * 35.0;
 
         for (let x = 0; x < W; x++) {
-          const u = (x - W / 2) / (W / 2); // -1.0 to 1.0 across phone width
+          const nx = x / W; // 0.0 to 1.0 across the phone
 
-          // In immersion, the object pulls surrounding surface film inward.
-          // Distance from the immersion axis maps to radial distance in the tank:
-          const distFromAxis = Math.abs(u * 420 + lateralOffset * 0.8);
+          // Relative position from entry vortex
+          const dx = (x + shearX) - vortexX;
+          const dy = (y + shearY) - vortexY;
 
-          // Vertical progress maps to radial concentric layers:
-          const radialDist = distFromAxis + (v * 480);
+          // Polar coordinates from the entry point
+          const r = Math.hypot(dx, dy);
+          const theta = Math.atan2(dy, dx);
 
-          // Angle in tank:
-          const angle = (u >= 0 ? 0.35 : Math.PI - 0.35) + Math.sin(v * 6.0) * 0.4;
+          // Logarithmic spiral fluid advection:
+          // As the object sinks, streamlines curl and wrap outward continuously without symmetry splits
+          const streamTwist = Math.log(Math.max(1.0, r * 0.05)) * 1.85;
+          const sampleAngle = theta + streamTwist;
 
-          let sampleX = Math.round(tankCenterX + Math.cos(angle) * radialDist);
-          let sampleY = Math.round(tankCenterY + Math.sin(angle) * radialDist);
+          // Distance mapping from tank center
+          const sampleR = Math.pow(r / (Math.hypot(W, H) * 0.7), 0.82) * 580.0;
 
-          // Clamp to source bounds
+          // Continuous sampling coordinates in tank (no discontinuities)
+          let sampleX = Math.round(tankCenterX + Math.cos(sampleAngle) * sampleR);
+          let sampleY = Math.round(tankCenterY + Math.sin(sampleAngle) * sampleR);
+
+          // Clamp
           sampleX = Math.max(0, Math.min(W - 1, sampleX));
           sampleY = Math.max(0, Math.min(H - 1, sampleY));
 
           const srcIdx = (sampleY * W + sampleX) * 4;
           const destIdx = (y * W + x) * 4;
 
-          // Surface sheen highlight
-          const sheen = Math.sin(v * Math.PI * 3.0 + u * 2.0) * 0.06;
-          const edgeShadow = 1.0 - Math.pow(Math.abs(u), 3.0) * 0.25; // bezel wrap falloff
+          // Smooth edge falloff and fluid sheen
+          const uDist = Math.abs(nx - 0.5) * 2.0;
+          const edgeVignette = 1.0 - Math.pow(uDist, 3.5) * 0.28;
+          const wetSheen = 1.0 + Math.sin(ny * Math.PI * 2.5 + nx * 2.0) * 0.05;
 
-          dest[destIdx]     = Math.min(255, (src[srcIdx] * (1 + sheen)) * edgeShadow);
-          dest[destIdx + 1] = Math.min(255, (src[srcIdx + 1] * (1 + sheen)) * edgeShadow);
-          dest[destIdx + 2] = Math.min(255, (src[srcIdx + 2] * (1 + sheen)) * edgeShadow);
+          dest[destIdx]     = Math.min(255, src[srcIdx] * wetSheen * edgeVignette);
+          dest[destIdx + 1] = Math.min(255, src[srcIdx + 1] * wetSheen * edgeVignette);
+          dest[destIdx + 2] = Math.min(255, src[srcIdx + 2] * wetSheen * edgeVignette);
           dest[destIdx + 3] = 255;
         }
       }
 
       phoneCtx.putImageData(destImg, 0, 0);
 
-      // Micro-frequency anti-screenshot grating
+      // Add sub-pixel anti-screenshot barrier
       phoneCtx.lineWidth = 1;
       for (let y = 0; y < H; y += 4) {
         phoneCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)';
@@ -314,7 +315,7 @@
       document.getElementById('stepBadge').innerText = 'Step 2 • Coated & Transferred';
       document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full';
       document.getElementById('stepTitle').innerText = 'Film Adhered to Display ✨';
-      document.getElementById('stepDesc').innerText = 'All concentric tank rings wrapped into fine flowing ribbons';
+      document.getElementById('stepDesc').innerText = 'Continuous spiral streamlines wrapped cleanly across the screen';
 
       document.getElementById('step1Controls').classList.add('hidden');
       document.getElementById('step2Controls').classList.remove('hidden');
