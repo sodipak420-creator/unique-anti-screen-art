@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Hydro Dip Wallpaper Studio</title>
+  <title>Hydro Dip Real Extrusion Studio</title>
 
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#ec4899" />
@@ -38,10 +38,10 @@
 
     <div class="text-center mb-3">
       <span id="stepBadge" class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
-        Step 1 • Create Water Pattern
+        Step 1 • Fluid Surface
       </span>
       <h1 id="stepTitle" class="text-xl font-black text-white mt-1">Water Bath Tank</h1>
-      <p id="stepDesc" class="text-[11px] text-slate-400">Drip and swirl your colors. The exact design will coat your phone.</p>
+      <p id="stepDesc" class="text-[11px] text-slate-400">Drip colors into the bath, then plunge phone to pull paint down the display.</p>
     </div>
 
     <div class="relative w-full max-w-[280px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-3 aspect-[9/16]">
@@ -49,7 +49,7 @@
 
       <div id="phoneRig" class="hidden absolute inset-0 bg-black">
         <canvas id="phoneCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
-        <div class="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-black/35 pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-tr from-white/15 via-transparent to-black/35 pointer-events-none"></div>
       </div>
     </div>
 
@@ -70,8 +70,8 @@
         <button onclick="seedTank()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-colors">
           Reset 🌊
         </button>
-        <button onclick="transferExactPattern()" class="w-2/3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
-          Dip Phone 📱⬇️
+        <button onclick="plungeAndExtrude()" class="w-2/3 bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+          Dip Phone From Top 📱⬇️
         </button>
       </div>
       <p class="text-[10px] text-center text-slate-500">Tap anywhere to add rings • Drag to swirl the ribbons</p>
@@ -232,31 +232,58 @@
       lastPoint = null;
     });
 
-    // DIRECT, LOSSLESS TRANSFER
-    // Captures the exact artwork swirled in the tank without destructive equations
-    function transferExactPattern() {
-      // 1. Copy the full design directly from the tank
-      phoneCtx.drawImage(tankCanvas, 0, 0);
+    // TRUE EXTRUSION DOWN THE PHONE (Eliminates the circles and extracts longitudinal ribbons)
+    function plungeAndExtrude() {
+      const src = tankCtx.getImageData(0, 0, W, H).data;
+      const destImg = phoneCtx.createImageData(W, H);
+      const dest = destImg.data;
 
-      // 2. Realistic curved edge glass vignette
-      const edgeVignette = phoneCtx.createRadialGradient(W / 2, H / 2, W * 0.42, W / 2, H / 2, W * 0.72);
-      edgeVignette.addColorStop(0, 'rgba(0,0,0,0)');
-      edgeVignette.addColorStop(0.85, 'rgba(0,0,0,0.25)');
-      edgeVignette.addColorStop(1, 'rgba(0,0,0,0.65)');
-      phoneCtx.fillStyle = edgeVignette;
-      phoneCtx.fillRect(0, 0, W, H);
+      // Slice the water bath across the middle diameter
+      const sliceY = Math.floor(H * 0.48);
+      const crossSection = [];
 
-      // 3. Clear-coat diagonal reflection beam
-      const gloss = phoneCtx.createLinearGradient(0, 0, W, H);
-      gloss.addColorStop(0.18, 'rgba(255,255,255,0.18)');
-      gloss.addColorStop(0.24, 'rgba(255,255,255,0.04)');
-      gloss.addColorStop(0.45, 'transparent');
-      gloss.addColorStop(0.72, 'rgba(255,255,255,0.06)');
-      gloss.addColorStop(0.76, 'transparent');
-      phoneCtx.fillStyle = gloss;
-      phoneCtx.fillRect(0, 0, W, H);
+      for (let x = 0; x < W; x++) {
+        const idx = (sliceY * W + x) * 4;
+        crossSection.push([src[idx], src[idx + 1], src[idx + 2]]);
+      }
 
-      // 4. Anti-screenshot sub-pixel protection
+      // Extrude every millimeter from y = 0 down to y = 1920
+      for (let y = 0; y < H; y++) {
+        const ny = y / H;
+
+        // Fluid shear displacement across the length of the phone
+        const wave1 = Math.sin(ny * 9.0) * 120.0;
+        const wave2 = Math.cos(ny * 18.0) * 55.0;
+        const wave3 = Math.sin(ny * 42.0) * 20.0;
+        const totalShear = wave1 + wave2 + wave3;
+
+        // Downward drag stretching
+        const dragSpread = 1.0 + Math.sin(ny * Math.PI) * 0.35;
+
+        for (let x = 0; x < W; x++) {
+          const nx = (x - W / 2) / (W / 2); // -1.0 to +1.0
+
+          // Map x-position back to the cross section of colors
+          let sampleX = Math.floor((W / 2) + (nx * (W / 2) / dragSpread) + totalShear);
+          sampleX = Math.max(0, Math.min(W - 1, sampleX));
+
+          const col = crossSection[sampleX];
+          const destIdx = (y * W + x) * 4;
+
+          // Surface sheen & curvature falloff
+          const edgeFade = 1.0 - Math.pow(Math.abs(nx), 3.0) * 0.25;
+          const gloss = 1.0 + Math.sin(ny * Math.PI * 3.5 + nx * 2.0) * 0.05;
+
+          dest[destIdx]     = Math.min(255, col[0] * gloss * edgeFade);
+          dest[destIdx + 1] = Math.min(255, col[1] * gloss * edgeFade);
+          dest[destIdx + 2] = Math.min(255, col[2] * gloss * edgeFade);
+          dest[destIdx + 3] = 255;
+        }
+      }
+
+      phoneCtx.putImageData(destImg, 0, 0);
+
+      // Micro-frequency anti-screenshot protection
       phoneCtx.lineWidth = 1;
       for (let y = 0; y < H; y += 4) {
         phoneCtx.strokeStyle = (y % 8 === 0) ? 'rgba(255, 255, 255, 0.035)' : 'rgba(0, 0, 0, 0.035)';
@@ -266,15 +293,15 @@
         phoneCtx.stroke();
       }
 
-      // 5. Trigger dipping animation
+      // Reveal phone
       const phoneRig = document.getElementById('phoneRig');
       phoneRig.classList.remove('hidden');
       phoneRig.classList.add('animate-dip');
 
-      document.getElementById('stepBadge').innerText = 'Step 2 • Dipped & Coated';
+      document.getElementById('stepBadge').innerText = 'Step 2 • Adhered Extrusion';
       document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full';
-      document.getElementById('stepTitle').innerText = 'Pattern Adhered to Phone ✨';
-      document.getElementById('stepDesc').innerText = 'Your exact water marbling is now transferred cleanly onto the display';
+      document.getElementById('stepTitle').innerText = 'Film Adhered Along Device ✨';
+      document.getElementById('stepDesc').innerText = 'Colors drawn lengthwise down the display like real hydro dipped skin';
 
       document.getElementById('step1Controls').classList.add('hidden');
       document.getElementById('step2Controls').classList.remove('hidden');
@@ -285,7 +312,7 @@
         if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.download = `hydro-marbled-1of1-${Date.now()}.png`;
+        a.download = `hydro-dipped-1of1-${Date.now()}.png`;
         a.href = url;
         document.body.appendChild(a);
         a.click();
@@ -302,10 +329,10 @@
       document.getElementById('step2Controls').classList.add('hidden');
       document.getElementById('step1Controls').classList.remove('hidden');
 
-      document.getElementById('stepBadge').innerText = 'Step 1 • Create Water Pattern';
+      document.getElementById('stepBadge').innerText = 'Step 1 • Fluid Surface';
       document.getElementById('stepBadge').className = 'text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full';
       document.getElementById('stepTitle').innerText = 'Water Bath Tank';
-      document.getElementById('stepDesc').innerText = 'Drip and swirl your colors. The exact design will coat your phone.';
+      document.getElementById('stepDesc').innerText = 'Drip colors into the bath, then plunge phone to pull paint down the display.';
 
       seedTank();
     }
