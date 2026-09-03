@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Hydro Dip 1-of-1 Studio</title>
-
+  <title>Hydro Dip Wallpaper</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { touch-action: none; }
@@ -15,28 +14,23 @@
 
   <main class="w-full max-w-md bg-slate-900 rounded-3xl shadow-2xl p-4 border border-slate-800 mt-2 mb-8">
     
-    <!-- Header -->
     <div class="text-center mb-3">
-      <span class="text-[10px] font-black uppercase tracking-widest bg-pink-500/20 text-pink-400 border border-pink-500/30 px-2.5 py-1 rounded-full">
-        Direct Marbling Studio
-      </span>
-      <h1 class="text-xl font-black text-white mt-1">Hydro Marbled Wallpaper</h1>
-      <p class="text-[11px] text-slate-400">Drip and swirl your pattern. What you see is exactly what downloads.</p>
+      <h1 class="text-xl font-black text-white tracking-tight">Hydro Marbled Wallpaper</h1>
+      <p class="text-[11px] text-slate-400">Drip colors, swirl your design, and tap download</p>
     </div>
 
-    <!-- Active Wallpaper Canvas (Full 9:16 Native) -->
+    <!-- Canvas Stage -->
     <div class="relative w-full max-w-[280px] mx-auto rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-black mb-3 aspect-[9/16]">
       <canvas id="artCanvas" width="1080" height="1920" class="w-full h-full object-cover"></canvas>
-      <img id="exportPreview" class="hidden absolute inset-0 w-full h-full object-cover z-20" alt="Dipped Wallpaper" />
     </div>
 
     <!-- Controls -->
     <div class="space-y-3 text-xs">
       
-      <!-- Pigment Selection -->
+      <!-- Palette -->
       <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
         <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] pl-1">Pigment:</span>
-        <div class="flex gap-2" id="paletteBar">
+        <div class="flex gap-2">
           <button onclick="pickColor('#f43f5e')" class="w-7 h-7 rounded-full bg-rose-500 border-2 border-white ring-2 ring-pink-500 scale-110 color-btn"></button>
           <button onclick="pickColor('#06b6d4')" class="w-7 h-7 rounded-full bg-cyan-500 border-2 border-transparent color-btn"></button>
           <button onclick="pickColor('#fbbf24')" class="w-7 h-7 rounded-full bg-amber-400 border-2 border-transparent color-btn"></button>
@@ -49,19 +43,20 @@
       <!-- Action Buttons -->
       <div class="grid grid-cols-2 gap-2">
         <button onclick="seedTank()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl text-xs transition-colors">
-          Reset Pattern 🔄
+          Reset Colors 🔄
         </button>
         <button onclick="clearCanvas()" class="w-full bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold py-3 rounded-xl text-xs transition-colors">
           Clear Blank 🌊
         </button>
       </div>
 
-      <button onclick="saveArtwork()" class="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-3.5 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
-        Download Marbled Wallpaper 📥
+      <!-- Reliable Native Downloader -->
+      <button onclick="forceDownloadPNG()" class="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-amber-500 text-slate-950 font-black py-4 rounded-xl text-xs tracking-wider shadow-lg shadow-pink-500/20 active:scale-95 transition-all">
+        Download Wallpaper (PNG) 📥
       </button>
 
-      <p id="helperText" class="text-[10px] text-center text-slate-500">
-        Tap anywhere to add rings • Drag finger across screen to swirl
+      <p class="text-[10px] text-center text-slate-500">
+        Tip: You can also tap and hold (long-press) on the art to save directly to Gallery
       </p>
 
     </div>
@@ -71,7 +66,6 @@
   <script>
     const canvas = document.getElementById('artCanvas');
     const ctx = canvas.getContext('2d');
-    const previewImg = document.getElementById('exportPreview');
     const W = 1080;
     const H = 1920;
 
@@ -167,7 +161,6 @@
     }
 
     function seedTank() {
-      previewImg.classList.add('hidden');
       drops = [];
       initBackground();
       const pal = ['#080414', '#3b0764', '#7e22ce', '#c084fc', '#06b6d4', '#f43f5e', '#fb7185', '#fbbf24', '#ffffff', '#0369a1'];
@@ -186,14 +179,11 @@
     }
 
     function clearCanvas() {
-      previewImg.classList.add('hidden');
       drops = [];
       initBackground();
     }
 
-    // Touch & Pointer Handlers
     canvas.addEventListener('pointerdown', (e) => {
-      previewImg.classList.add('hidden');
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) * (W / rect.width);
       const y = (e.clientY - rect.top) * (H / rect.height);
@@ -220,28 +210,25 @@
       lastPoint = null;
     });
 
-    // DIRECT EXPORT: No conversion, no transformation, instant download
-    function saveArtwork() {
-      try {
-        const dataUrl = canvas.toDataURL('image/png', 1.0);
+    // DIRECT FILE DOWNLOAD (No PWA, No Shortcut Dialogs)
+    function forceDownloadPNG() {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          alert("Rendering error. Try long-pressing the canvas to save.");
+          return;
+        }
+        const fileUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = `wallpaper-${Date.now()}.png`;
+        document.body.appendChild(link);
+        link.click();
         
-        // Show as image directly so user can also long-press save
-        previewImg.src = dataUrl;
-        previewImg.classList.remove('hidden');
-
-        // Immediate programmatic download
-        const a = document.createElement('a');
-        a.download = `hydro-marbled-${Date.now()}.png`;
-        a.href = dataUrl;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        document.getElementById('helperText').innerText = "Wallpaper ready! If download didn't trigger, long-press the screen to save.";
-        document.getElementById('helperText').className = "text-[11px] text-center text-emerald-400 font-bold";
-      } catch (err) {
-        alert("Please long-press the artwork to save it directly to your gallery.");
-      }
+        setTimeout(() => {
+          document.body.removeChild(link);
+          URL.revokeObjectURL(fileUrl);
+        }, 1000);
+      }, 'image/png');
     }
 
     seedTank();
